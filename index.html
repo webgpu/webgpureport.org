@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGPU Report</title>
+
+    <meta name="description" content="Info on your browser's implementation of WebGPU" />
+    <meta name="keywords" content="webgpu gpu graphics" />
+
+    <meta property="og:title" content="WebGPU Report" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Info on your browser's implementation of WebGPU" />
+    <meta property="og:url" content="https://webgpureport.org/">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@greggman">
+    <meta name="twitter:creator" content="@greggman">
+    <meta name="twitter:domain" content="webgpureport.org">
+    <meta name="twitter:title" content="WebGPU Report">
+    <meta name="twitter:url" content="https://webgpureport.org/">
+    <meta name="twitter:description" content="Info on your browser's implementation of WebGPU" />
+
+    <title>WebGPU Report</title>
+    <style>
+      body {
+        background: #000;
+        color: #0F0;
+        font-family: monospace
+      }
+      pre {
+        margin: 0;
+      }
+      sup {
+        font-size: xx-small;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebGPU Report<sup>(super alpha)</sup></h1>
+<style>
+#forkongithub a {
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    font-family: arial,sans-serif;
+    text-align: center;
+    font-weight: bold;
+    padding: 5px 40px;
+    font-size: 12px;
+    line-height: 24px;
+    position: relative;
+    transition: 0.5s;
+    display: block;
+}
+#forkongithub a:hover {
+    background: #c11;
+    color: #fff;
+}
+#forkongithub a::before,#forkongithub a::after {
+    content: "";
+    width: 100%;
+    display: block;
+    position: absolute;
+    top: 1px;
+    left: 0;
+    height: 1px;
+    background: #fff;
+}
+#forkongithub a::after {
+    bottom: 1px;
+    top: auto;
+}
+
+@media screen and (min-width: 400px){
+    #forkongithub{
+        position: fixed;
+        display: block;
+        top: 0;
+        right: 0;
+        width: 200px;
+        overflow: hidden;
+        height: 200px;
+        z-index: 9999;
+    }
+    #forkongithub a{
+        width: 200px;
+        position: absolute;
+        top: 40px;
+        right: -70px;
+        transform: rotate(45deg);
+        -webkit-transform: rotate(45deg);
+        -ms-transform: rotate(45deg);
+        -moz-transform: rotate(45deg);
+        -o-transform: rotate(45deg);
+        box-shadow: 4px 4px 10px rgba(0,0,0,0.8);
+    }
+}
+
+</style>
+<div id="forkongithub"><a href="https://github.com/gfxfundamentals/webgpureport.org">Fix me on GitHub</a></div>
+
+  </body>
+  <script>
+  function expand(obj) {
+    return Object.entries(obj).map((key, value) => {
+      return `${key.padRight(20)}: ${value}`;
+    }).join('\n');
+  }
+
+  function indent(s, prefix) {
+    return s.split('\n').map(s => `${prefix}${s}`).join('\n');
+  }
+
+  function show(obj, prop) {
+    log(`${prop}:`);
+    const values = obj[prop];
+    if (values) {
+      log(indent(expend(obj), '  '));
+    } else {
+      log(`  ${prop} not implemented by this browser`);
+    }
+  }
+
+  function log(...args) {
+    const elem = document.createElement('pre');
+    elem.textContent = args.join(' ');
+    document.body.appendChild(elem);
+  }
+
+  async function main() {
+    if (!navigator.gpu?.requestAdapter) {
+      log('  webgpu not available on this browser');
+      return;
+    }
+    const adapter = await navigator.gpu.requestAdapter();
+    log(`name: ${adapter.name}`);
+    show(adapter, 'features');
+    show(adapter, 'limits');
+
+    // NOTE: The spec as of 2021/25/01 makes no mention of extensions
+    // but Firefox and Chrome both have a property called `extensions
+    log('extensions:');
+    const extensions = adapter.extensions;
+    if (extensions) {
+      log(indent(extensions.join('\n'), '  '));
+    }
+
+    // const device = await adapter.requestDevice();
+  }
+
+  main();
+  </script>
+</html>
