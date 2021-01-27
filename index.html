@@ -135,11 +135,16 @@
     }
     const adapter = await navigator.gpu.requestAdapter();
     log(`name: ${adapter.name}`);
+
+    log('\nNOTE: The as of 2021/28/01 no implementation of WebGPU');
+    log('lists any features or limits\n');
+
     show(adapter, 'features');
     show(adapter, 'limits');
 
-    // NOTE: The spec as of 2021/25/01 makes no mention of extensions
-    // but Firefox and Chrome both have a property called `extensions
+    log('\nNOTE: The spec as of 2021/28/01 makes no mention of extensions');
+    log('but Firefox and Chrome both have a property called "extensions"\n');
+
     log('extensions:');
     const extensions = adapter.extensions;
     if (extensions) {
