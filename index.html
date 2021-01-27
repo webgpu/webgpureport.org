@@ -137,13 +137,13 @@
     log(`name: ${adapter.name}`);
 
     log('\nNOTE: The as of 2021/28/01 no implementation of WebGPU');
-    log('lists any features or limits\n');
+    log('lists any features or limits\n\n');
 
     show(adapter, 'features');
     show(adapter, 'limits');
 
     log('\nNOTE: The spec as of 2021/28/01 makes no mention of extensions');
-    log('but Firefox and Chrome both have a property called "extensions"\n');
+    log('but Firefox and Chrome both have a property called "extensions"\n\n');
 
     log('extensions:');
     const extensions = adapter.extensions;
