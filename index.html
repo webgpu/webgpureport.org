@@ -102,24 +102,42 @@
 
   </body>
   <script>
-  function expand(obj) {
-    return Object.entries(obj).map((key, value) => {
-      return `${key.padRight(20)}: ${value}`;
+  function expandSetLike(obj) {
+    const entries = [...obj.values()];
+    if (entries.length === 0) {
+      return 'none';
+    }
+    return entries.map(value => {
+      return `${value}`;
     }).join('\n');
+  }
+
+  function expandMapLike(obj) {
+    const properties = [];
+    let maxLen = 0;
+    for (const v in obj) {
+      maxLen = Math.max(maxLen, v.length);
+    }
+    for (const v in obj) {
+      properties.push(`${v.padEnd(maxLen)}: ${obj[v]}`);
+    }
+    return properties.join('\n');
   }
 
   function indent(s, prefix) {
     return s.split('\n').map(s => `${prefix}${s}`).join('\n');
   }
 
-  function show(obj, prop) {
-    log(`${prop}:`);
-    const values = obj[prop];
-    if (values) {
-      log(indent(expend(obj), '  '));
-    } else {
-      log(`  ${prop} not implemented by this browser`);
-    }
+  function setLikeToString(values) {
+    return values
+      ? expandSetLike(values)
+      : 'not yet implemented by this browser';
+  }
+
+  function mapLikeToString(values) {
+    return values
+      ? expandMapLike(values)
+      : 'not yet implemented by this browser';
   }
 
   function log(...args) {
@@ -128,30 +146,44 @@
     document.body.appendChild(elem);
   }
 
+  function adapterToString(adapter) {
+    const s = [`\n------------------------`];
+
+    s.push(`\nfeatures:`);
+    const features = setLikeToString(adapter.features);
+    s.push(indent(features, '  '));
+
+    s.push('\nlimits:');
+    const limits = mapLikeToString(adapter.limits);
+    s.push(indent(limits, '  '));
+
+    // const device = await adapter.requestDevice();
+
+    return s.join('\n');
+  }
+
   async function main() {
     if (!navigator.gpu?.requestAdapter) {
       log('  webgpu not available on this browser');
       return;
     }
-    const adapter = await navigator.gpu.requestAdapter();
-    log(`name: ${adapter.name}`);
 
-    log('\nNOTE: The as of 2021/28/01 no implementation of WebGPU');
-    log('lists any features or limits\n\n');
+    const prefs = [
+      "low-power",
+      "high-performance"
+    ];
 
-    show(adapter, 'features');
-    show(adapter, 'limits');
-
-    log('\nNOTE: The spec as of 2021/28/01 makes no mention of extensions');
-    log('but Firefox and Chrome both have a property called "extensions"\n\n');
-
-    log('extensions:');
-    const extensions = adapter.extensions;
-    if (extensions) {
-      log(indent(extensions.join('\n'), '  '));
+    const adapterIds = new Set();
+    for (const pref of prefs) {
+      const adapter = await navigator.gpu.requestAdapter({powerPreference: pref});
+      if (adapter) {
+        const id = adapterToString(adapter);
+        if (!adapterIds.has(id)) {
+          adapterIds.add(id);
+          log(id);
+        }
+      }
     }
-
-    // const device = await adapter.requestDevice();
   }
 
   main();
