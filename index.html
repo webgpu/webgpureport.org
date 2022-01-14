@@ -37,7 +37,7 @@
     </style>
   </head>
   <body>
-    <h1>WebGPU Report<sup>(super alpha)</sup></h1>
+    <h1>WebGPU Report<sup>(beta)</sup></h1>
 <style>
 #forkongithub a {
     background: #000;
@@ -198,6 +198,23 @@
     }
   }
 
+  async function checkWorkers() {
+    log('\nworkers:');
+    const worker = new WorkerHelper('worker.js');
+    const {gpu, adapter, device} = await worker.getMessage('checkWebGPU');
+    log(`  webgpu API    : ${gpu ? 'exists' : 'n/a'}`);
+    if (!gpu) {
+      return;
+    }
+
+    log(`  requestAdapter: ${adapter ? 'successful' : 'failed'}`);
+    if (!adapter) {
+      return;
+    }
+
+    log(`  requestDevice : ${device ? 'successful' : 'failed'}`);
+  }
+
   async function main() {
     if (!navigator.gpu?.requestAdapter) {
       log('  webgpu not available on this browser');
@@ -221,18 +238,7 @@
       }
     }
 
-    {
-      log('\nworkers:');
-      const worker = new WorkerHelper('worker.js');
-      const {gpu, adapter, device} = await worker.getMessage('checkWebGPU');
-      log(`   webgpu : ${gpu ? 'exists' : 'n/a'}`);
-      if (gpu) {
-        log(`   adapter: ${adapter ? 'exists' : 'n/a'}`);
-        if (adapter) {
-          log(`   device : ${device ? 'successful' : 'failed'}`);
-        }
-      }
-    }
+    await checkWorkers();
   }
 
   main();
