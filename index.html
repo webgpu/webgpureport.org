@@ -162,6 +162,42 @@
     return s.join('\n');
   }
 
+  class WorkerHelper {
+    constructor(url) {
+      this._id = 0;
+      this._promisesByIdMap = new Map();
+      this._messagesByIdMap = new Map();
+      this._worker = new Worker(url);
+      this._worker.onmessage = (e) => {
+        const {id, data} = e.data;
+        this._messagesByIdMap.set(id, data);
+        this._process(id);
+      };
+    }
+    _process(id) {
+      const p = this._promisesByIdMap.get(id);
+      const data = this._messagesByIdMap.get(id);
+      if (p && data) {
+        this._messagesByIdMap.delete(id);
+        this._promisesByIdMap.delete(id);
+        p.resolve(data);
+      }
+    }
+    async getMessage(command, data = {}) {
+      let resolve;
+      let reject;
+      const promise = new Promise((_resolve, _reject) => {
+        resolve = _resolve;
+        reject = _reject;
+      });
+      const id = this._id++;
+      this._promisesByIdMap.set(id, {resolve, reject});
+      this._worker.postMessage({command, id, data});
+      this._process(id);
+      return promise;
+    }
+  }
+
   async function main() {
     if (!navigator.gpu?.requestAdapter) {
       log('  webgpu not available on this browser');
@@ -181,6 +217,19 @@
         if (!adapterIds.has(id)) {
           adapterIds.add(id);
           log(id);
+        }
+      }
+    }
+
+    {
+      log('\nworkers:');
+      const worker = new WorkerHelper('worker.js');
+      const {gpu, adapter, device} = await worker.getMessage('checkWebGPU');
+      log(`   webgpu : ${gpu ? 'exists' : 'n/a'}`);
+      if (gpu) {
+        log(`   adapter: ${adapter ? 'exists' : 'n/a'}`);
+        if (adapter) {
+          log(`   device : ${device ? 'successful' : 'failed'}`);
         }
       }
     }
