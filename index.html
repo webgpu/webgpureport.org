@@ -34,6 +34,30 @@
       sup {
         font-size: xx-small;
       }
+      table {
+        background: #222;
+      }
+      tr:nth-child(even) {
+        background: rgba(255, 255, 255, 0.05);
+      }
+      .adapters {
+        display: flex;
+        flex-wrap: wrap;
+      }
+      .name>td,
+      .section>td {
+        font-size: larger;
+        font-weight: bold;
+        padding-top: 1.5em;
+        padding-bottom: 0.5em;
+        background: #333;
+        color: lightgreen;
+      }
+      .limit>td,
+      .feature>td,
+      .worker>td {
+        padding-left: 2em;
+      }
     </style>
   </head>
   <body>
@@ -101,43 +125,73 @@
 <div id="forkongithub"><a href="https://github.com/gfxfundamentals/webgpureport.org">Fix me on GitHub</a></div>
 
   </body>
-  <script>
-  function expandSetLike(obj) {
-    const entries = [...obj.values()];
-    if (entries.length === 0) {
-      return 'none';
+<script>
+
+  function createElem(tag, attrs = {}) { 
+    const elem = document.createElement(tag);
+    for (const [key, value] of Object.entries(attrs)) {
+      if (typeof value === 'object') {
+        for (const [k, v] of Object.entries(value)) {
+          elem[key][k] = v;
+        }
+      } else if (elem[key] === undefined) {
+        elem.setAttribute(key, value);
+      } else {
+        elem[key] = value;
+      }
     }
-    return entries.map(value => {
-      return `${value}`;
-    }).join('\n');
+    return elem;
+  }
+
+  function addElem(tag, attrs = {}, children  = []) {
+    const elem = createElem(tag, attrs);
+    for (const child of children) {
+      elem.appendChild(child);
+    }
+    return elem;
+  }
+
+  function appendElem(parent, ...args) {
+    const elem = addElem(...args);
+    parent.appendChild(elem);
+    return elem;
+  }
+
+  const el = addElem;
+
+  function addValueRow(className, k, v) {
+    return el('tr', {className}, [
+      el('td', {textContent: k}),
+      el('td', {textContent: v}),
+    ]);
+  }
+
+  function expandSetLike(obj) {
+    let entries = [...obj.values()];
+    if (entries.length === 0) {
+      entries = ['none'];
+    }
+    return entries.map(value => el('tr', {className: 'limit'}, [el('td', {colSpan: 2, textContent: value})]));
   }
 
   function expandMapLike(obj) {
-    const properties = [];
-    let maxLen = 0;
-    for (const v in obj) {
-      maxLen = Math.max(maxLen, v.length);
+    const entries = [];
+    for (const key in obj) {
+      entries.push([key, obj[key]]);
     }
-    for (const v in obj) {
-      properties.push(`${v.padEnd(maxLen)}: ${obj[v]}`);
-    }
-    return properties.join('\n');
+    return entries.map(([k, v]) => addValueRow('feature', k, v));
   }
 
-  function indent(s, prefix) {
-    return s.split('\n').map(s => `${prefix}${s}`).join('\n');
-  }
-
-  function setLikeToString(values) {
+  function setLikeToTableRows(values) {
     return values
       ? expandSetLike(values)
-      : 'not yet implemented by this browser';
+      : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
   }
 
-  function mapLikeToString(values) {
+  function mapLikeToTableRows(values) {
     return values
       ? expandMapLike(values)
-      : 'not yet implemented by this browser';
+      : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
   }
 
   function log(...args) {
@@ -146,20 +200,19 @@
     document.body.appendChild(elem);
   }
 
-  function adapterToString(adapter) {
-    const s = [`\n------------------------`];
-
-    s.push(`\nfeatures:`);
-    const features = setLikeToString(adapter.features);
-    s.push(indent(features, '  '));
-
-    s.push('\nlimits:');
-    const limits = mapLikeToString(adapter.limits);
-    s.push(indent(limits, '  '));
-
-    // const device = await adapter.requestDevice();
-
-    return s.join('\n');
+  function adapterToElements(adapter) {
+    return el('table', {className: 'adapter'}, [
+      el('tbody', {}, [
+        el('tr', {className: 'section'}, [
+          el('td', {colSpan: 2, textContent: 'limits:'}),
+        ]),
+        ...mapLikeToTableRows(adapter.limits),
+        el('tr', {className: 'section'}, [
+          el('td', {colSpan: 2, textContent: 'features:'}),
+        ]),
+        ...setLikeToTableRows(adapter.features),
+      ]),
+    ]);
   }
 
   class WorkerHelper {
@@ -199,20 +252,24 @@
   }
 
   async function checkWorkers() {
-    log('\nworkers:');
+    const body = document.body;
+    appendElem(body, 'h2', {textContent: 'workers'});
+    const tbody = el('tbody');
+    appendElem(body, 'table', {}, [tbody]);
+
     const worker = new WorkerHelper('worker.js');
     const {gpu, adapter, device} = await worker.getMessage('checkWebGPU');
-    log(`  webgpu API    : ${gpu ? 'exists' : 'n/a'}`);
+    tbody.appendChild(addValueRow('worker', 'webgpu API', gpu ? 'exists' : 'n/a'));
     if (!gpu) {
       return;
     }
 
-    log(`  requestAdapter: ${adapter ? 'successful' : 'failed'}`);
+    tbody.appendChild(addValueRow('worker', 'requestAdapter', adapter ? 'successful' : 'failed'));
     if (!adapter) {
       return;
     }
 
-    log(`  requestDevice : ${device ? 'successful' : 'failed'}`);
+    tbody.appendChild(addValueRow('worker', 'requestDevice', device ? 'successful' : 'failed'));
   }
 
   async function main() {
@@ -226,18 +283,25 @@
       "high-performance"
     ];
 
-    const adapterIds = new Set();
+    const adapterIds = new Map();
     for (const pref of prefs) {
       const adapter = await navigator.gpu.requestAdapter({powerPreference: pref});
       if (adapter) {
-        const id = adapterToString(adapter);
+        // The id is the the actual adaptor limits as a string.
+        // Effectively if the limits are the same then it's *probably* the 
+        // same adaptor.
+        const elem = adapterToElements(adapter);
+        const id = elem.innerHTML + adapter.name;
         if (!adapterIds.has(id)) {
-          adapterIds.add(id);
-          log(id);
+          adapterIds.set(id, {pref, elem, name: adapter.name});
         }
       }
     }
-
+    document.body.appendChild(el('div', {className: 'adapters'}, 
+      [...adapterIds].map(([id, {pref, elem, name}], ndx) => el('div', {}, [
+        el('h2', {textContent: `Adaptor #${ndx + 1}: name: ${name} ${adapterIds.size > 1 ? `(${pref})` : ''}`}),
+        elem,
+      ]))));
     await checkWorkers();
   }
 
