@@ -40,22 +40,33 @@
       tr:nth-child(even) {
         background: rgba(255, 255, 255, 0.05);
       }
+      tr:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      h2, td {
+        padding: 0 10px 0 10px;
+      }
       .adapters {
         display: flex;
         flex-wrap: wrap;
+      }
+      .adapter {
+        background: #444;
+        margin-right: 10px;
       }
       .name>td,
       .section>td {
         font-size: larger;
         font-weight: bold;
-        padding-top: 1.5em;
+        padding-top: 1em;
         padding-bottom: 0.5em;
         background: #333;
         color: lightgreen;
       }
-      .limit>td,
-      .feature>td,
-      .worker>td {
+      
+      .limit>td:first-child,
+      .feature>td:first-child,
+      .worker>td:first-child {
         padding-left: 2em;
       }
     </style>
@@ -201,7 +212,7 @@
   }
 
   function adapterToElements(adapter) {
-    return el('table', {className: 'adapter'}, [
+    return el('table', {}, [
       el('tbody', {}, [
         el('tr', {className: 'section'}, [
           el('td', {colSpan: 2, textContent: 'limits:'}),
@@ -298,8 +309,8 @@
       }
     }
     document.body.appendChild(el('div', {className: 'adapters'}, 
-      [...adapterIds].map(([id, {pref, elem, name}], ndx) => el('div', {}, [
-        el('h2', {textContent: `Adaptor #${ndx + 1}: name: ${name} ${adapterIds.size > 1 ? `(${pref})` : ''}`}),
+      [...adapterIds].map(([id, {pref, elem, name}], ndx) => el('div', {className: 'adapter'}, [
+        el('h2', {textContent: `#${ndx + 1} name: ${name} ${adapterIds.size > 1 ? `(${pref})` : ''}`}),
         elem,
       ]))));
     await checkWorkers();
