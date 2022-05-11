@@ -23,9 +23,36 @@
 
     <title>WebGPU Report</title>
     <style>
+      :root {
+    		--background-color: #FFF;
+
+    		--text-color: #006;
+
+        --adapter-background-color: #CCC;
+        --table-background-color: #EEE;
+        --even-row-color: rgba(0, 0, 0, 0.05);
+        --hover-color: rgba(0, 0, 0, 0.2);
+        --header-background-color: #DDD;
+        --header-text-color: #00A;
+      }
+      @media (prefers-color-scheme: dark) {
+
+      	:root {
+      		--background-color: #000;
+
+      		--text-color: #0F0;
+
+          --adapter-background-color: #444;
+          --table-background-color: #222;
+          --even-row-color: rgba(255, 255, 255, 0.05);
+          --hover-color: rgba(255, 255, 255, 0.2);
+          --header-background-color: #333;
+          --header-text-color: lightgreen;
+      	}
+      } 
       body {
-        background: #000;
-        color: #0F0;
+        background: var(--background-color);
+        color: var(--text-color);
         font-family: monospace
       }
       pre {
@@ -35,13 +62,13 @@
         font-size: xx-small;
       }
       table {
-        background: #222;
+        background: var(--table-background-color);
       }
       tr:nth-child(even) {
-        background: rgba(255, 255, 255, 0.05);
+        background: var(--even-row-color);
       }
       tr:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: var(--hover-color);
       }
       h2, td {
         padding: 0 10px 0 10px;
@@ -51,7 +78,7 @@
         flex-wrap: wrap;
       }
       .adapter {
-        background: #444;
+        background: var(--adapter-background-color);
         margin-right: 10px;
       }
       .name>td,
@@ -60,8 +87,8 @@
         font-weight: bold;
         padding-top: 1em;
         padding-bottom: 0.5em;
-        background: #333;
-        color: lightgreen;
+        background: var(--header-background-color);
+        color: var(--header-text-color);
       }
       
       .limit>td:first-child,
