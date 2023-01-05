@@ -241,9 +241,14 @@
     document.body.appendChild(elem);
   }
 
-  function adapterToElements(adapter) {
+  async function adapterToElements(adapter) {
+    const adapterInfo = await adapter.requestAdapterInfo();
     return el('table', {}, [
       el('tbody', {}, [
+      el('tr', {className: 'section'}, [
+          el('td', {colSpan: 2, textContent: 'adapter info:'}),
+        ]),
+        ...mapLikeToTableRows(adapterInfo),
         el('tr', {className: 'section'}, [
           el('td', {colSpan: 2, textContent: 'limits:'}),
         ]),
@@ -331,7 +336,7 @@
         // The id is the the actual adaptor limits as a string.
         // Effectively if the limits are the same then it's *probably* the 
         // same adaptor.
-        const elem = adapterToElements(adapter);
+        const elem = await adapterToElements(adapter);
         const id = elem.innerHTML + adapter.name;
         if (!adapterIds.has(id)) {
           adapterIds.set(id, {pref, elem, name: adapter.name});
