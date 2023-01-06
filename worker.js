@@ -8,13 +8,25 @@ async function checkWebGPU(id, data) {
       const device = await adapter.requestDevice();
       if (device) {
         results.device = true;
+        const {canvas} = data;
+        if (canvas) {
+          results.context = !!canvas.getContext('webgpu');
+        }
       }
     }
   }
+
+  results.rAF = !!self.requestAnimationFrame;
+
   postMessage({id, data: results});
 }
 
+async function ping(id) {
+  postMessage({id, data: { }});
+}
+
 const handlers = {
+  ping,
   checkWebGPU,
 };
 
