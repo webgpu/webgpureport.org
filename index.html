@@ -251,7 +251,8 @@
   }
 
   async function adapterToElements(adapter) {
-    const adapterInfo = await adapter.requestAdapterInfo();
+    // UGH!
+    const adapterInfo = await adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined;
 
     const limitsSectionElem = el('tr', {className: 'section'}, [
       el('td', {colSpan: 2, textContent: 'limits:'}),
@@ -263,7 +264,7 @@
           el('td', {colSpan: 2}, [
             el('div', {className: 'space-around'}, [
               el('div', {textContent: 'adapter info:'}),
-              el('button', {
+              ...(adapterInfo ? [el('button', {
                 type: 'button', 
                 onClick: async function() {
                   // Note: The entire thing is a little big wonky. In order to make the data line up
@@ -283,7 +284,7 @@
                   this.remove();
                 },
                 textContent: 'request unmasked',
-              }),
+              })] : []),
             ]),
           ]),
         ]),
