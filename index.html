@@ -25,9 +25,9 @@
     <style>
       :root {
         color-scheme: light dark;
-    		--background-color: #FFF;
+        --background-color: #FFF;
 
-    		--text-color: #006;
+        --text-color: #006;
 
         --adapter-background-color: #CCC;
         --table-background-color: #EEE;
@@ -38,10 +38,10 @@
       }
       @media (prefers-color-scheme: dark) {
 
-      	:root {
-      		--background-color: #000;
+        :root {
+          --background-color: #000;
 
-      		--text-color: #0F0;
+          --text-color: #0F0;
 
           --adapter-background-color: #444;
           --table-background-color: #222;
@@ -49,7 +49,7 @@
           --hover-color: rgba(255, 255, 255, 0.2);
           --header-background-color: #333;
           --header-text-color: lightgreen;
-      	}
+        }
       } 
       body {
         background: var(--background-color);
@@ -88,6 +88,7 @@
       .adapter {
         background: var(--adapter-background-color);
         margin-right: 10px;
+        margin-bottom: 10px;
       }
       .name>td,
       .section>td {
@@ -354,20 +355,25 @@
     tbody.appendChild(addValueRow('worker', 'requestDevice', device ? 'successful' : 'failed'));
   }
 
+  function adapterOptionsToDesc(requestAdapterOptions, adapter) {
+    return adapter.isFallbackAdapter ? `fallback` : requestAdapterOptions.powerPreference;
+  }
+
   async function main() {
     if (!navigator.gpu?.requestAdapter) {
       log('  webgpu not available on this browser');
       return;
     }
 
-    const prefs = [
-      "low-power",
-      "high-performance"
+    const requestAdapterOptionsSets = [
+      { powerPreference: "high-performance" },
+      { powerPreference: "low-power", },
+      { powerPreference: "low-power", forceFallbackAdapter: true, },
     ];
 
     const adapterIds = new Map();
-    for (const pref of prefs) {
-      const adapter = await navigator.gpu.requestAdapter({powerPreference: pref});
+    for (const requestAdapterOptions of requestAdapterOptionsSets) {
+      const adapter = await navigator.gpu.requestAdapter(requestAdapterOptions);
       if (adapter) {
         // The id is the the actual adaptor limits as a string.
         // Effectively if the limits are the same then it's *probably* the 
@@ -375,13 +381,17 @@
         const elem = await adapterToElements(adapter);
         const id = elem.innerHTML + adapter.name;
         if (!adapterIds.has(id)) {
-          adapterIds.set(id, {pref, elem, name: adapter.name});
+          adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem, name: adapter.name});
         }
       }
     }
+
+    const haveFallback = [...adapterIds].findIndex(([, desc]) => desc.isFallbackAdapter) >= 0;
+    const numUniqueGPUs = adapterIds.size - (haveFallback ? 1 : 0)
+
     document.body.appendChild(el('div', {className: 'adapters'}, 
-      [...adapterIds].map(([id, {pref, elem, name}], ndx) => el('div', {className: 'adapter'}, [
-        el('h2', {textContent: `#${ndx + 1} name: ${name} ${adapterIds.size > 1 ? `(${pref})` : ''}`}),
+      [...adapterIds].map(([id, {desc, elem, name, fallback}], ndx) => el('div', {className: 'adapter'}, [
+        el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > numUniqueGPUs || fallback) ? `${desc}` : ''}`}),
         elem,
       ]))));
     await checkWorkers();
