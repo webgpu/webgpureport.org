@@ -24,6 +24,7 @@
     <title>WebGPU Report</title>
     <style>
       :root {
+        color-scheme: light dark;
     		--background-color: #FFF;
 
     		--text-color: #006;
@@ -75,6 +76,10 @@
       }
       h2, td {
         padding: 0 10px 0 10px;
+      }
+      .space-around {
+        display: flex;
+        justify-content: space-between;
       }
       .adapters {
         display: flex;
@@ -166,12 +171,15 @@
 <div id="forkongithub"><a href="https://github.com/gfxfundamentals/webgpureport.org">Fix me on GitHub</a></div>
 
   </body>
-<script>
+<script type="module">
 
   function createElem(tag, attrs = {}) { 
     const elem = document.createElement(tag);
     for (const [key, value] of Object.entries(attrs)) {
-      if (typeof value === 'object') {
+      if (typeof value === 'function') {
+        const event = key.substring(2).toLowerCase();
+        elem.addEventListener(event, value);
+      } else if (typeof value === 'object') {
         for (const [k, v] of Object.entries(value)) {
           elem[key][k] = v;
         }
@@ -243,15 +251,43 @@
 
   async function adapterToElements(adapter) {
     const adapterInfo = await adapter.requestAdapterInfo();
+
+    const limitsSectionElem = el('tr', {className: 'section'}, [
+      el('td', {colSpan: 2, textContent: 'limits:'}),
+    ]);
+
     return el('table', {}, [
       el('tbody', {}, [
-      el('tr', {className: 'section'}, [
-          el('td', {colSpan: 2, textContent: 'adapter info:'}),
+        el('tr', {className: 'section'}, [
+          el('td', {colSpan: 2}, [
+            el('div', {className: 'space-around'}, [
+              el('div', {textContent: 'adapter info:'}),
+              el('button', {
+                type: 'button', 
+                onClick: async function() {
+                  // Note: The entire thing is a little big wonky. In order to make the data line up
+                  // all the data is in a single table so that the largest cell in each column defines the
+                  // size of that column. Where as, the data looks like it wants each section to have it's own
+                  // hierarchy of elements. But, because it's all one table there's no trivial definition of
+                  // "start of section" or "end of section". We end up adding rows by finding the top of our
+                  // section, then finding the next section, then inserting rows before that.
+                  const adapterInfo = await adapter.requestAdapterInfo(['vendor', 'architecture', 'device', 'description']);
+                  const tbody = limitsSectionElem.parentElement;
+                  const rows = mapLikeToTableRows(adapterInfo);
+                  for (const row of rows) {
+                    const desc = row.cells[0];
+                    desc.textContent = `unmasked: ${desc.textContent}`;
+                    tbody.insertBefore(row, limitsSectionElem);
+                  }
+                  this.remove();
+                },
+                textContent: 'request unmasked',
+              }),
+            ]),
+          ]),
         ]),
         ...mapLikeToTableRows(adapterInfo),
-        el('tr', {className: 'section'}, [
-          el('td', {colSpan: 2, textContent: 'limits:'}),
-        ]),
+        limitsSectionElem,
         ...mapLikeToTableRows(adapter.limits),
         el('tr', {className: 'section'}, [
           el('td', {colSpan: 2, textContent: 'features:'}),
