@@ -10,6 +10,7 @@
 
     <meta property="og:title" content="WebGPU Report" />
     <meta property="og:type" content="website" />
+    <meta property="og:image" content="https://webgpureport.org/image.png" />
     <meta property="og:description" content="Info on your browser's implementation of WebGPU" />
     <meta property="og:url" content="https://webgpureport.org/">
 
@@ -20,6 +21,10 @@
     <meta name="twitter:title" content="WebGPU Report">
     <meta name="twitter:url" content="https://webgpureport.org/">
     <meta name="twitter:description" content="Info on your browser's implementation of WebGPU" />
+    <meta name="twitter:image:src" content="https://webgpureport.org/image.png">
+
+    <link rel="icon" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <title>WebGPU Report</title>
     <style>
@@ -88,8 +93,11 @@
         display: flex;
         justify-content: space-between;
       }
+      #content {
+        margin: 0 auto;
+      }
       .adapters {
-        display: flex;
+        display: inline-flex;
         flex-wrap: wrap;
       }
       .adapter {
@@ -116,6 +124,7 @@
   </head>
   <body>
     <h1>WebGPU Report<sup>(beta)</sup></h1>
+    <div id="content"></div>
 <style>
 #forkongithub a {
     background: #000;
