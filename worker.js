@@ -2,8 +2,8 @@ async function checkWebGPU(id, data) {
   const results = {}
   if (navigator.gpu) {
     results.gpu = true;
-    const adapter = await navigator.gpu.requestAdapter();
-    if (adapter) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter();
       results.adapter = true;
       const device = await adapter.requestDevice();
       if (device) {
@@ -13,6 +13,8 @@ async function checkWebGPU(id, data) {
           results.context = !!canvas.getContext('webgpu');
         }
       }
+    } catch (e) {
+      results.error = (e.message || e).toString();
     }
   }
 

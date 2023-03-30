@@ -249,8 +249,8 @@ async function main() {
 
   const adapterIds = new Map();
   for (const requestAdapterOptions of requestAdapterOptionsSets) {
-    const adapter = await navigator.gpu.requestAdapter(requestAdapterOptions);
-    if (adapter) {
+    try {
+      const adapter = await navigator.gpu.requestAdapter(requestAdapterOptions);
       // The id is the the actual adaptor limits as a string.
       // Effectively if the limits are the same then it's *probably* the 
       // same adaptor.
@@ -259,6 +259,8 @@ async function main() {
       if (!adapterIds.has(id)) {
         adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem, name: adapter.name});
       }
+    } catch (e) {
+      log('  webgpu request failed:', e.message || e);
     }
   }
 
