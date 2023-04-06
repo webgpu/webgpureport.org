@@ -194,6 +194,16 @@ function addSupportsRow(tbody, section, feature, supported) {
   tbody.appendChild(addValueRow(section, feature, supported ? 'successful' : 'failed'));
 }
 
+async function checkMisc() {
+  const body = document.body;
+  appendElem(body, 'h2', {textContent: 'misc'});
+  const tbody = el('tbody');
+  appendElem(body, 'table', {}, [tbody]);
+
+  const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
+  tbody.appendChild(addValueRow('misc', 'getPreferredCanvasFormat', presentationFormat));
+
+}
 async function checkWorkers() {
   const body = document.body;
   appendElem(body, 'h2', {textContent: 'workers'});
@@ -272,6 +282,7 @@ async function main() {
       el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > numUniqueGPUs || fallback) ? `${desc}` : ''}`}),
       elem,
     ]))));
+  await checkMisc();
   await checkWorkers();
 }
 
