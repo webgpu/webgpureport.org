@@ -256,7 +256,7 @@ function adapterOptionsToDesc(requestAdapterOptions, adapter) {
 }
 
 async function main() {
-  if (!navigator.gpu?.requestAdapter) {
+  if (!navigator.gpu?.requestAdapter) { 
     log('  webgpu not available on this browser');
     return;
   }
@@ -275,20 +275,21 @@ async function main() {
       // Effectively if the limits are the same then it's *probably* the 
       // same adaptor.
       const elem = await adapterToElements(adapter);
-      const id = elem.innerHTML + adapter.name;
+      const id = elem.innerHTML;
       if (!adapterIds.has(id)) {
-        adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem, name: adapter.name});
+        adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem});
       }
     } catch (e) {
       log('  webgpu request failed:', e.message || e);
     }
   }
 
-  const haveFallback = [...adapterIds].findIndex(([, desc]) => desc.isFallbackAdapter) >= 0;
+  const haveFallback = [...adapterIds].findIndex(([, desc]) => desc.fallback) >= 0;
   const numUniqueGPUs = adapterIds.size - (haveFallback ? 1 : 0)
 
+  window.a = adapterIds;
   document.body.appendChild(el('div', {className: 'adapters'}, 
-    [...adapterIds].map(([id, {desc, elem, name, fallback}], ndx) => el('div', {className: 'adapter'}, [
+    [...adapterIds].map(([id, {desc, elem, fallback}], ndx) => el('div', {className: 'adapter'}, [
       el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > numUniqueGPUs || fallback) ? `${desc}` : ''}`}),
       elem,
     ]))));
