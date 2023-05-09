@@ -214,7 +214,7 @@ function addSupportsRow(tbody, section, feature, supported) {
   tbody.appendChild(addValueRow(section, feature, supported ? 'successful' : 'failed'));
 }
 
-async function checkMisc() {
+async function checkMisc({haveFallback}) {
   const body = document.body;
   appendElem(body, 'h2', {textContent: 'misc'});
   const tbody = el('tbody');
@@ -222,7 +222,9 @@ async function checkMisc() {
 
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   tbody.appendChild(addValueRow('misc', 'getPreferredCanvasFormat', presentationFormat));
-
+  if (!haveFallback) {
+    tbody.appendChild(addValueRow('misc', 'fallback adapter', 'not supported'));
+  }
 }
 async function checkWorkers() {
   const body = document.body;
@@ -290,7 +292,9 @@ async function main() {
         adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem});
       }
     } catch (e) {
-      log('  webgpu request failed:', e.message || e);
+      if (!requestAdapterOptions.forceFallbackAdapter) {
+        log(`  webgpu request with adapterOptions: ${JSON.stringify(requestAdapterOptions)} failed:`, e.message || e);
+      }
     }
   }
 
@@ -303,7 +307,7 @@ async function main() {
       el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > numUniqueGPUs || fallback) ? `${desc}` : ''}`}),
       elem,
     ]))));
-  await checkMisc();
+  await checkMisc({haveFallback});
   await checkWorkers();
 }
 
