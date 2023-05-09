@@ -51,12 +51,20 @@ function addValueRow(className, k, v) {
   ]);
 }
 
+function byFirstColumn(trA, trB) {
+  const a = trA.cells[0].textContent;
+  const b = trB.cells[0].textContent;
+  return a < b ? -1 : a > b ? 1 : 0; 
+}
+
 function expandSetLike(obj) {
   let entries = [...obj.values()];
   if (entries.length === 0) {
     entries = ['none'];
   }
-  return entries.map(value => el('tr', {className: 'limit'}, [el('td', {colSpan: 2, textContent: value})]));
+  return entries
+    .map(value => el('tr', {className: 'limit'}, [el('td', {colSpan: 2, textContent: value})]))
+    .sort(byFirstColumn);
 }
 
 function expandMapLike(obj) {
@@ -64,7 +72,9 @@ function expandMapLike(obj) {
   for (const key in obj) {
     entries.push([key, obj[key]]);
   }
-  return entries.map(([k, v]) => addValueRow('feature', k, v));
+  return entries
+    .map(([k, v]) => addValueRow('feature', k, v))
+    .sort(byFirstColumn);
 }
 
 function setLikeToTableRows(values) {
