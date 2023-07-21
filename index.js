@@ -303,8 +303,8 @@ async function main() {
 
   window.a = adapterIds;
   document.body.appendChild(el('div', {className: 'adapters'}, 
-    [...adapterIds].map(([id, {desc, elem, fallback}], ndx) => el('div', {className: 'adapter'}, [
-      el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > numUniqueGPUs || fallback) ? `${desc}` : ''}`}),
+    [...adapterIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
+      el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > 1) ? `${desc}` : ''}`}),
       elem,
     ]))));
   await checkMisc({haveFallback});
