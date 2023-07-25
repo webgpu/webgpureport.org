@@ -61,7 +61,7 @@
       body {
         background: var(--background-color);
         color: var(--text-color);
-        font-family: monospace
+        font-family: monospace;
       }
       .error {
         color: var(--error-text-color);
@@ -83,11 +83,19 @@
       tr:hover {
         background: var(--hover-color);
       }
+      h1 {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
       h2 {
        margin: 0.5em 0 0.5em 0;
       }
       h2, td {
         padding: 0 10px 0 10px;
+      }
+      .logo {
+        height: 1.5em;
       }
       .misc td:nth-child(2) {
         white-space: pre;
@@ -126,7 +134,7 @@
     </style>
   </head>
   <body>
-    <h1>WebGPU Report<sup>(beta)</sup></h1>
+    <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report<sup>(beta)</sup></h1>
     <div id="content"></div>
 <style>
 #forkongithub a {
