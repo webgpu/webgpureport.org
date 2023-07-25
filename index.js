@@ -141,6 +141,13 @@ async function adapterToElements(adapter) {
         ]),
       ]),
       ...mapLikeToTableRows(adapterInfo),
+      el('tr', {className: 'section'}, [
+        el('td', {colSpan: 2, textContent: 'special flags:'}),
+      ]),
+      ...mapLikeToTableRows({
+        'isFallbackAdapter': adapter.isFallbackAdapter,
+        'isCompatibilityMode': adapter.isCompatibilityMode,
+      }),
       limitsSectionElem,
       ...mapLikeToTableRows(adapter.limits),
       el('tr', {className: 'section'}, [
@@ -264,7 +271,7 @@ async function checkWorkers() {
 }
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
-  return adapter.isFallbackAdapter ? `fallback` : requestAdapterOptions.powerPreference;
+  return adapter.isFallbackAdapter ? `fallback` : adapter.isCompatibilityMode ? "compatibilityMode" : requestAdapterOptions.powerPreference;
 }
 
 async function main() {
@@ -277,6 +284,7 @@ async function main() {
     { powerPreference: "high-performance" },
     { powerPreference: "low-power", },
     { powerPreference: "low-power", forceFallbackAdapter: true, },
+    { compatibilityMode: true },
   ];
 
   const adapterIds = new Map();
