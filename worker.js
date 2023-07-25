@@ -4,13 +4,15 @@ async function checkWebGPU(id, data) {
     results.gpu = true;
     try {
       const adapter = await navigator.gpu.requestAdapter();
-      results.adapter = true;
-      const device = await adapter.requestDevice();
-      if (device) {
-        results.device = true;
-        const {canvas} = data;
-        if (canvas) {
-          results.context = !!canvas.getContext('webgpu');
+      if (adapter) {
+        results.adapter = true;
+        const device = await adapter.requestDevice();
+        if (device) {
+          results.device = true;
+          const {canvas} = data;
+          if (canvas) {
+            results.context = !!canvas.getContext('webgpu');
+          }
         }
       }
     } catch (e) {

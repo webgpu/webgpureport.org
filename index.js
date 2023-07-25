@@ -96,6 +96,9 @@ function log(...args) {
 }
 
 async function adapterToElements(adapter) {
+  if (!adapter) {
+    return;
+  }
   // UGH!
   const adapterInfo = await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
 
@@ -271,7 +274,13 @@ async function checkWorkers() {
 }
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
-  return adapter.isFallbackAdapter ? `fallback` : adapter.isCompatibilityMode ? "compatibilityMode" : requestAdapterOptions.powerPreference;
+  return adapter
+     ? (adapter.isFallbackAdapter
+           ? `fallback`
+           : adapter.isCompatibilityMode
+                ? "compatibilityMode"
+                : requestAdapterOptions.powerPreference)
+     : '';
 }
 
 async function main() {
@@ -295,9 +304,13 @@ async function main() {
       // Effectively if the limits are the same then it's *probably* the 
       // same adaptor.
       const elem = await adapterToElements(adapter);
-      const id = elem.innerHTML;
+      const id = elem?.innerHTML;
       if (!adapterIds.has(id)) {
-        adapterIds.set(id, {desc: adapterOptionsToDesc(requestAdapterOptions, adapter), fallback: adapter.isFallbackAdapter, elem});
+        adapterIds.set(id, {
+          desc: adapterOptionsToDesc(requestAdapterOptions, adapter),
+          fallback: adapter?.isFallbackAdapter,
+          elem,
+        });
       }
     } catch (e) {
       if (!requestAdapterOptions.forceFallbackAdapter) {
@@ -309,10 +322,18 @@ async function main() {
   const haveFallback = [...adapterIds].findIndex(([, desc]) => desc.fallback) >= 0;
   const numUniqueGPUs = adapterIds.size - (haveFallback ? 1 : 0)
 
+  const actualAdaptersIds = [...adapterIds].filter(([, {elem}]) => !!elem);
+  if (actualAdaptersIds.length === 0) {
+    if (adapterIds.size > 0) {
+      document.body.appendChild(el('div', {textContent: `webgpu appears to be disabled`}));
+    } else {
+      document.body.appendChild(el('div', {textContent: `webgpu appears to not be supported`}));
+    }
+  }
   window.a = adapterIds;
-  document.body.appendChild(el('div', {className: 'adapters'}, 
-    [...adapterIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
-      el('h2', {textContent: `#${ndx + 1} ${(adapterIds.size > 1) ? `${desc}` : ''}`}),
+  document.body.appendChild(el('div', {className: 'adapters'},
+    [...actualAdaptersIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
+      el('h2', {textContent: `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`}),
       elem,
     ]))));
   await checkMisc({haveFallback});
