@@ -142,7 +142,7 @@ async function adapterToElements(adapter) {
       ]),
       ...mapLikeToTableRows(adapterInfo),
       el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2, textContent: 'special flags:'}),
+        el('td', {colSpan: 2, textContent: 'flags:'}),
       ]),
       ...mapLikeToTableRows({
         'isFallbackAdapter': adapter.isFallbackAdapter,
