@@ -274,13 +274,13 @@ async function checkWorkers() {
 }
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
-  return adapter
-     ? (adapter.isFallbackAdapter
-           ? `fallback`
-           : adapter.isCompatibilityMode
-                ? "compatibilityMode"
-                : requestAdapterOptions.powerPreference)
-     : '';
+  const parts = [
+    ...(adapter.isFallbackAdapter ? ['fallback'] : []),
+    ...(adapter.isCompatibilityMode ? ['compatibilityMode'] : []),
+  ];
+  return parts.length > 0
+    ? parts.join(' ')
+    : requestAdapterOptions.powerPreference;
 }
 
 async function main() {
