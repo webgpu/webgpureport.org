@@ -1,38 +1,85 @@
 
-function createElem(tag, attrs = {}) { 
+function createElem(tag, attrs = {}, children = []) { 
   const elem = document.createElement(tag);
-  for (const [key, value] of Object.entries(attrs)) {
-    if (typeof value === 'function') {
-      const event = key.substring(2).toLowerCase();
-      elem.addEventListener(event, value);
-    } else if (typeof value === 'object') {
-      for (const [k, v] of Object.entries(value)) {
-        elem[key][k] = v;
+  if (typeof attrs === 'string') {
+    elem.textContent = attrs;
+  } else {
+    for (const [key, value] of Object.entries(attrs)) {
+      if (typeof value === 'function') {
+        const event = key.substring(2).toLowerCase();
+        elem.addEventListener(event, value);
+      } else if (typeof value === 'object') {
+        for (const [k, v] of Object.entries(value)) {
+          elem[key][k] = v;
+        }
+      } else if (elem[key] === undefined) {
+        elem.setAttribute(key, value);
+      } else {
+        elem[key] = value;
       }
-    } else if (elem[key] === undefined) {
-      elem.setAttribute(key, value);
-    } else {
-      elem[key] = value;
     }
   }
-  return elem;
-}
-
-function addElem(tag, attrs = {}, children  = []) {
-  const elem = createElem(tag, attrs);
   for (const child of children) {
     elem.appendChild(child);
   }
   return elem;
 }
 
+/**
+ * Creates a hidden span that will only be used when the when
+ * the user copies or downloads text.
+ */
+function createHidden(textContent) {
+  return createElem('span', {className: 'copy', textContent});
+}
+
+/**
+ * Given a string or Attributes returns the `textContent`
+ * and the attributes with `textContent` removed
+ */
+function separateTextContentFromAttributes(attrs = {}) {
+  return typeof attrs === 'string' ? {textContent: attrs, attribs: {}} : {
+    textContent: attrs['textContent'] || '',
+    attribs: {...attrs, textContent: ''},
+  };
+}
+
+/**
+ * Creates a heading tag with hidden text for copying
+ * so the copy will be like markdown.
+ */
+function createHeading(tag, padChar, attrs = {}, children = []) {
+  const {textContent, attribs} = separateTextContentFromAttributes(attrs);
+  return createElem(tag, attribs, [
+    createHidden('\n\n'),
+    createElem('span', textContent),
+    createHidden(`\n${''.padEnd(textContent.length, padChar)}`),
+    ...children,
+  ]);
+}
+
 function appendElem(parent, ...args) {
-  const elem = addElem(...args);
+  const elem = createElem(...args);
   parent.appendChild(elem);
   return elem;
 }
 
-const el = addElem;
+const el = createElem;
+
+/**
+ * Given a blob and a filename, prompts user to
+ * save as a file.
+ */
+const saveData = (function() {
+  const a = appendElem(document.body, 'a');
+  a.style.display = 'none';
+  return function saveData(blob, fileName) {
+    const url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = fileName;
+    a.click();
+  };
+}());
 
 const shortSize = (function() {
   const suffixes = ['b', 'k', 'mb', 'gb', 'tb', 'pb'];
@@ -72,8 +119,9 @@ function expandMapLike(obj) {
   for (const key in obj) {
     entries.push([key, obj[key]]);
   }
+  const longestDesc = entries.reduce((longest, [description]) => Math.max(longest, description.length), 0);  
   return entries
-    .map(([k, v]) => addValueRow('feature', k, v))
+    .map(([k, v]) => addValueRow('feature', k.padEnd(longestDesc + 1), v))
     .sort(byFirstColumn);
 }
 
@@ -103,7 +151,7 @@ async function adapterToElements(adapter) {
   const adapterInfo = await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
-    el('td', {colSpan: 2, textContent: 'limits:'}),
+    el('td', {colSpan: 2}, [createHeading('div', '-', 'limits:')]),
   ]);
 
   return el('table', {}, [
@@ -111,9 +159,10 @@ async function adapterToElements(adapter) {
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [
           el('div', {className: 'space-around'}, [
-            el('div', {textContent: 'adapter info:'}),
+            createHeading('div', '-', 'adapter info:'),
             ...(adapterInfo ? [el('button', {
               type: 'button', 
+              className: 'hide-on-copy',
               onClick: async function() {
                 // Note: The entire thing is a little big wonky. In order to make the data line up
                 // all the data is in a single table so that the largest cell in each column defines the
@@ -145,7 +194,7 @@ async function adapterToElements(adapter) {
       ]),
       ...mapLikeToTableRows(adapterInfo),
       el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2, textContent: 'flags:'}),
+        el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
       ]),
       ...mapLikeToTableRows({
         'isFallbackAdapter': adapter.isFallbackAdapter,
@@ -154,7 +203,7 @@ async function adapterToElements(adapter) {
       limitsSectionElem,
       ...mapLikeToTableRows(adapter.limits),
       el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2, textContent: 'features:'}),
+        el('td', {colSpan: 2}, [createHeading('div', '-', 'features:')]),
       ]),
       ...setLikeToTableRows(adapter.features),
     ]),
@@ -220,47 +269,50 @@ class WorkerHelper {
   }
 }
 
-function addSupportsRow(tbody, section, feature, supported) {
-  tbody.appendChild(addValueRow(section, feature, supported ? 'successful' : 'failed'));
-}
-
 async function checkMisc({haveFallback}) {
   const body = document.body;
-  appendElem(body, 'h2', {textContent: 'misc'});
-  const tbody = el('tbody');
-  appendElem(body, 'table', {}, [tbody]);
+  body.appendChild(createHeading('h2', '=', 'misc'));
 
+  const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
-  tbody.appendChild(addValueRow('misc', 'getPreferredCanvasFormat', presentationFormat));
+  obj.getPreferredCanvasFormat = presentationFormat;
   if (!haveFallback) {
-    tbody.appendChild(addValueRow('misc', 'fallback adapter', 'not supported'));
+    obj['fallback adapter'] = 'not supported';
   }
+
+  appendElem(body, 'table', { className: 'misc' }, [
+    el('tbody', {}, mapLikeToTableRows(obj)),
+  ]);
 }
+
 async function checkWorkers() {
   const body = document.body;
-  appendElem(body, 'h2', {textContent: 'workers'});
-  const tbody = el('tbody');
-  appendElem(body, 'table', {}, [tbody]);
+  body.appendChild(createHeading('h2', '=', 'workers'));
 
   const canvas = document.createElement('canvas');
   const offscreen = !!canvas.transferControlToOffscreen
   let offscreenCanvas = offscreen && canvas.transferControlToOffscreen();
 
+  const obj = {};
+  const addSupportsRow = (feature, supported, success = 'successful', fail = 'failed') => {
+    obj[feature] = supported ? success : fail;
+  };
+
   const worker = new WorkerHelper('worker.js');
   const {rAF, gpu, adapter, device, context} = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
-  tbody.appendChild(addValueRow('worker', 'webgpu API', gpu ? 'exists' : 'n/a'));
+  addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
   if (gpu) {
-    addSupportsRow(tbody, 'worker', 'requestAdapter', adapter);
+    addSupportsRow('requestAdapter', adapter);
     if (adapter) {
-      addSupportsRow(tbody, 'worker', 'requestDevice', device);
+      addSupportsRow('requestDevice', device);
       if (context) {
-        addSupportsRow(tbody, 'worker', 'getContext("webgpu")', context);
+        addSupportsRow('getContext("webgpu")', context);
       }
     }
   }
 
-  addSupportsRow(tbody, 'worker', 'requestAnimationFrame', rAF);
-  addSupportsRow(tbody, 'worker', 'transferControlToOffscreen', offscreen);
+  addSupportsRow('requestAnimationFrame', rAF);
+  addSupportsRow('transferControlToOffscreen', offscreen);
 
   let moduleSupport = false;
   try {
@@ -270,7 +322,11 @@ async function checkWorkers() {
   } catch (e) {
     //
   }
-  addSupportsRow(tbody, 'worker', 'es6 modules', moduleSupport);
+  addSupportsRow('es6 modules', moduleSupport);
+
+  appendElem(body, 'table', { className: 'worker' }, [
+    el('tbody', {}, mapLikeToTableRows(obj)),
+  ]);
 }
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
@@ -282,6 +338,68 @@ function adapterOptionsToDesc(requestAdapterOptions, adapter) {
     ? parts.join(' ')
     : requestAdapterOptions.powerPreference;
 }
+
+function getSelectionText(all) {
+    const dynamicStyle = document.querySelector('#dynamic-style');
+    dynamicStyle.textContent = `
+      body { white-space: pre !important; }
+      .copy { display: initial; }
+      .hide-on-copy { display: none !important; }
+    `;
+    const selection = document.getSelection();
+
+    if (all) {
+      selection.removeAllRanges();
+      selection.selectAllChildren(document.body);
+    } else {
+      const position =
+          selection.anchorNode?.compareDocumentPosition(selection.focusNode);
+      const [startNode, startOffset, endNode, endOffset] =
+          ((position || 0) & Node.DOCUMENT_POSITION_FOLLOWING) ?
+          [
+            selection.anchorNode,
+            selection.anchorOffset,
+            selection.focusNode,
+            selection.focusOffset,
+          ] :
+          [
+            selection.focusNode,
+            selection.focusOffset,
+            selection.anchorNode,
+            selection.anchorOffset,
+          ];
+      if (startOffset === 0) {
+        // Given the selection between > and <
+        //
+        //   * >abc
+        //   * def<
+        //
+        // We need to move the start of the selection back to the parent
+        // otherwise the selection above will copied as
+        //
+        //   abc
+        //   * def
+        //
+        // since the * (the list item's bullet) is not selectable directly.
+        const li = startNode.parentElement?.closest('li');
+        selection.setBaseAndExtent(
+            li || startNode.parentNode, 0, endNode, endOffset);
+      }
+    }
+
+    // Get text and remove superfluous lines and whitespace.
+    const text = selection.toString()
+                     .replace(/\s*\n\s*\n\s*\n+/g, '\n\n')
+                     .replace(/\t/g, ' ')
+                     .trim();
+
+    if (all) {
+      document.getSelection()?.removeAllRanges();
+    }
+
+    dynamicStyle.textContent = '';
+    return text;
+  }
 
 async function main() {
   if (!navigator.gpu?.requestAdapter) { 
@@ -333,11 +451,25 @@ async function main() {
   window.a = adapterIds;
   document.body.appendChild(el('div', {className: 'adapters'},
     [...actualAdaptersIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
-      el('h2', {textContent: `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`}),
+      createHeading('h2', '=', `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`),
       elem,
     ]))));
   await checkMisc({haveFallback});
   await checkWorkers();
+
+  // Add a copy handler to massage the text for plain text.
+  document.addEventListener('copy', (event) => {
+    const text = getSelectionText(false);
+    event.clipboardData.setData('text/plain', text);
+    event.preventDefault();
+  });
+
+  document.querySelector('#download').addEventListener('click', () => {
+    const text = getSelectionText(true);
+    const blob = new Blob([text], {type: 'text/text'});
+    const filename = `webgpureport-${new Date().toISOString().replace(/[^a-z0-9-]/ig, '-')}.txt`;
+    saveData(blob, filename);
+  });  
 }
 
 main();

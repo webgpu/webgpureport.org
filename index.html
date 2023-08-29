@@ -28,113 +28,128 @@
 
     <title>WebGPU Report</title>
     <style>
-      :root {
-        color-scheme: light dark;
-        --background-color: #FFF;
+:root {
+  color-scheme: light dark;
+  --background-color: #FFF;
 
-        --text-color: #006;
-        --error-text-color: red;
+  --text-color: #006;
+  --error-text-color: red;
 
-        --adapter-background-color: #CCC;
-        --table-background-color: #EEE;
-        --even-row-color: rgba(0, 0, 0, 0.05);
-        --hover-color: rgba(0, 0, 0, 0.2);
-        --header-background-color: #DDD;
-        --header-text-color: #00A;
-      }
-      @media (prefers-color-scheme: dark) {
+  --adapter-background-color: #CCC;
+  --table-background-color: #EEE;
+  --even-row-color: rgba(0, 0, 0, 0.05);
+  --hover-color: rgba(0, 0, 0, 0.2);
+  --header-background-color: #DDD;
+  --header-text-color: #00A;
+}
+@media (prefers-color-scheme: dark) {
 
-        :root {
-          --background-color: #000;
+  :root {
+    --background-color: #000;
 
-          --text-color: #0F0;
-          --error-text-color: #F66;
+    --text-color: #0F0;
+    --error-text-color: #F66;
 
-          --adapter-background-color: #444;
-          --table-background-color: #222;
-          --even-row-color: rgba(255, 255, 255, 0.05);
-          --hover-color: rgba(255, 255, 255, 0.2);
-          --header-background-color: #333;
-          --header-text-color: lightgreen;
-        }
-      } 
-      body {
-        background: var(--background-color);
-        color: var(--text-color);
-        font-family: monospace;
-      }
-      .error {
-        color: var(--error-text-color);
-      }
-      pre {
-        margin: 0;
-      }
-      sup {
-        font-size: xx-small;
-      }
-      table {
-        background: var(--table-background-color);
-        /* force table to collapse to longest word in each column and therefore wrap paragraphs */
-        width: 0;
-      }
-      tr:nth-child(even) {
-        background: var(--even-row-color);
-      }
-      tr:hover {
-        background: var(--hover-color);
-      }
-      h1 {
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-      }
-      h2 {
-       margin: 0.5em 0 0.5em 0;
-      }
-      h2, td {
-        padding: 0 10px 0 10px;
-      }
-      .logo {
-        height: 1.5em;
-      }
-      .misc td:nth-child(2) {
-        white-space: pre;
-      }
-      .space-around {
-        display: flex;
-        justify-content: space-between;
-      }
-      #content {
-        margin: 0 auto;
-      }
-      .adapters {
-        display: inline-flex;
-        flex-wrap: wrap;
-      }
-      .adapter {
-        background: var(--adapter-background-color);
-        margin-right: 10px;
-        margin-bottom: 10px;
-      }
-      .name>td,
-      .section>td {
-        font-size: larger;
-        font-weight: bold;
-        padding-top: 0.5em;
-        padding-bottom: 0.5em;
-        background: var(--header-background-color);
-        color: var(--header-text-color);
-      }
-      
-      .limit>td:first-child,
-      .feature>td:first-child,
-      .worker>td:first-child {
-        padding-left: 2em;
-      }
+    --adapter-background-color: #444;
+    --table-background-color: #222;
+    --even-row-color: rgba(255, 255, 255, 0.05);
+    --hover-color: rgba(255, 255, 255, 0.2);
+    --header-background-color: #333;
+    --header-text-color: lightgreen;
+  }
+} 
+body {
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: monospace;
+}
+.error {
+  color: var(--error-text-color);
+}
+pre {
+  margin: 0;
+}
+sup {
+  font-size: xx-small;
+}
+table {
+  background: var(--table-background-color);
+  /* force table to collapse to longest word in each column and therefore wrap paragraphs */
+  width: 0;
+}
+tr:nth-child(even) {
+  background: var(--even-row-color);
+}
+tr:hover {
+  background: var(--hover-color);
+}
+h1 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+h2 {
+ margin: 0.5em 0 0.5em 0;
+}
+h2, td {
+  padding: 0 10px 0 10px;
+}
+.logo {
+  height: 1.5em;
+}
+.misc td:nth-child(2) {
+  white-space: pre;
+}
+.space-around {
+  display: flex;
+  justify-content: space-between;
+}
+#content {
+  margin: 0 auto;
+}
+.adapters {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+.adapter {
+  background: var(--adapter-background-color);
+  margin-right: 10px;
+  margin-bottom: 10px;
+}
+.name>td,
+.section>td {
+  font-size: larger;
+  font-weight: bold;
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+  background: var(--header-background-color);
+  color: var(--header-text-color);
+}
+
+.limit>td:first-child,
+.feature>td:first-child,
+.worker>td:first-child {
+  padding-left: 2em;
+}
+
+#download {
+  padding-left: 1em;
+  cursor: pointer;
+}
+/*
+This class is used to show text that is only available
+when the user copies text or downloads the report to a file.
+We insert extra but hidden text to make plain text formatting
+look better, at copy/download time we make the text visible
+*/
+.copy {
+  display: none;
+}
     </style>
+    <style id="dynamic-style"></style>
   </head>
   <body>
-    <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report</h1>
+    <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report <div class="hide-on-copy" title="download to file" id="download">⬇️</div></h1>
     <div id="content"></div>
 <style>
 #forkongithub a {
@@ -196,7 +211,7 @@
 }
 
 </style>
-<div id="forkongithub"><a href="https://github.com/gfxfundamentals/webgpureport.org">Fix me on GitHub</a></div>
+<div id="forkongithub" class="hide-on-copy"><a href="https://github.com/gfxfundamentals/webgpureport.org">Fix me on GitHub</a></div>
 
   </body>
   <script type="module" src="index.js"></script>
