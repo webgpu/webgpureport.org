@@ -225,17 +225,31 @@ function log(...args) {
   document.body.appendChild(elem);
 }
 
-function markDifferencesInLimits(limits) {
+function differenceWorse(info, v) {
+  switch (info.class) {
+    case 'alignment':
+      return v > info.default;
+    case 'maximum':
+      return v < info.default;
+    default:
+      throw new Error(`unknown className: ${info.class}`)
+  }
+}
+
+function markDifferencesInLimits(adapter) {
   return Object.fromEntries(
-    mapLikeToKeyValueArray(limits)
+    mapLikeToKeyValueArray(adapter.limits)
       .map(([k, v]) => {
         const info = kLimitInfo[k];
         const isDiff = info && info.default !== v;
+        const diffClass = isDiff
+           ? differenceWorse(info, v) ? 'different-worse' : 'different-better'
+           : '';
         const value = v > 1024 && info ? `${v} (${shortSizeByType(v, info.type)})` : v;
         return [
           k,
           isDiff
-            ? [value, {className: 'different nowrap', title: `default: ${shortSizeByType(info.default, info.type)}`}]
+            ? [value, {className: `${diffClass} nowrap`, title: `default${adapter.isCompatibilityMode ? ' in compat' : ''}: ${shortSizeByType(adapter.isCompatibilityMode ? info.compat : info.default, info.type)}`}]
             : [value, {className: 'nowrap', title: 'same as default'}]
         ];
       })
@@ -300,7 +314,7 @@ async function adapterToElements(adapter) {
         'isCompatibilityMode': adapter.isCompatibilityMode,
       }),
       limitsSectionElem,
-      ...mapLikeToTableRows(markDifferencesInLimits(adapter.limits)),
+      ...mapLikeToTableRows(markDifferencesInLimits(adapter)),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'features:')]),
       ]),
