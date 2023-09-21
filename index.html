@@ -41,6 +41,7 @@
   --hover-color: rgba(0, 0, 0, 0.2);
   --header-background-color: #DDD;
   --header-text-color: #00A;
+  --different-text-color: magenta;
 }
 @media (prefers-color-scheme: dark) {
 
@@ -56,6 +57,7 @@
     --hover-color: rgba(255, 255, 255, 0.2);
     --header-background-color: #333;
     --header-text-color: lightgreen;
+    --different-text-color: orange;
   }
 } 
 body {
@@ -124,6 +126,9 @@ h2, td {
   padding-bottom: 0.5em;
   background: var(--header-background-color);
   color: var(--header-text-color);
+}
+.different {
+  color: var(--different-text-color);
 }
 
 .limit>td:first-child,

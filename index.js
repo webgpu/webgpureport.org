@@ -1,4 +1,63 @@
 
+function makeTable(members, defaults, table) {
+  const result = {};
+  for (const [k, v] of Object.entries(table)) {
+    const item = {};
+    for (let i = 0; i < members.length; ++i) {
+      item[members[i]] = v[i] ?? defaults[i];
+    }
+    result[k] = item;
+  }
+  return result;
+}
+
+export const kMaxUnsignedLongValue = 4294967295;
+export const kMaxUnsignedLongLongValue = Number.MAX_SAFE_INTEGER;
+
+/** Info for each entry of GPUSupportedLimits */
+const kLimitInfo = /* prettier-ignore */ makeTable(
+                                               [    'class', 'default', 'compat' ,            'maximumValue'],
+                                               [  'maximum',          ,          ,     kMaxUnsignedLongValue], {
+  'maxTextureDimension1D':                     [           ,      8192,      4096,                          ],
+  'maxTextureDimension2D':                     [           ,      8192,      4096,                          ],
+  'maxTextureDimension3D':                     [           ,      2048,      1024,                          ],
+  'maxTextureArrayLayers':                     [           ,       256,       256,                          ],
+
+  'maxBindGroups':                             [           ,         4,         4,                          ],
+  'maxBindingsPerBindGroup':                   [           ,      1000,      1000,                          ],
+  'maxDynamicUniformBuffersPerPipelineLayout': [           ,         8,         8,                          ],
+  'maxDynamicStorageBuffersPerPipelineLayout': [           ,         4,         4,                          ],
+  'maxSampledTexturesPerShaderStage':          [           ,        16,        16,                          ],
+  'maxSamplersPerShaderStage':                 [           ,        16,        16,                          ],
+  'maxStorageBuffersPerShaderStage':           [           ,         8,         4,                          ],
+  'maxStorageTexturesPerShaderStage':          [           ,         4,         4,                          ],
+  'maxUniformBuffersPerShaderStage':           [           ,        12,        12,                          ],
+
+  'maxUniformBufferBindingSize':               [           ,     65536,     16384, kMaxUnsignedLongLongValue],
+  'maxStorageBufferBindingSize':               [           , 134217728, 134217728, kMaxUnsignedLongLongValue],
+  'minUniformBufferOffsetAlignment':           ['alignment',       256,       256,                          ],
+  'minStorageBufferOffsetAlignment':           ['alignment',       256,       256,                          ],
+
+  'maxVertexBuffers':                          [           ,         8,         8,                          ],
+  'maxBufferSize':                             [           , 268435456, 268435456, kMaxUnsignedLongLongValue],
+  'maxVertexAttributes':                       [           ,        16,        16,                          ],
+  'maxVertexBufferArrayStride':                [           ,      2048,      2048,                          ],
+  'maxInterStageShaderComponents':             [           ,        60,        60,                          ],
+  'maxInterStageShaderVariables':              [           ,        16,        16,                          ],
+
+  'maxColorAttachments':                       [           ,         8,         4,                          ],
+  'maxColorAttachmentBytesPerSample':          [           ,        32,        32,                          ],
+
+  'maxComputeWorkgroupStorageSize':            [           ,     16384,     16384,                          ],
+  'maxComputeInvocationsPerWorkgroup':         [           ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeX':                  [           ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeY':                  [           ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeZ':                  [           ,        64,        64,                          ],
+  'maxComputeWorkgroupsPerDimension':          [           ,     65535,     65535,                          ],
+});
+
+console.log(kLimitInfo);
+
 function createElem(tag, attrs = {}, children = []) { 
   const elem = document.createElement(tag);
   if (typeof attrs === 'string') {
@@ -91,10 +150,11 @@ const shortSize = (function() {
   };
 })();
 
-function addValueRow(className, k, v) {
+function addValueRow(className, k, _v) {
+  const [v, valueClassName] = Array.isArray(_v) ? _v : [_v, ''];
   return el('tr', {className}, [
     el('td', {textContent: k}),
-    el('td', {innerHTML: v >= 1024 ? `${v}&nbsp;(${shortSize(v)})` : v}),
+    el('td', {className: valueClassName, innerHTML: v >= 1024 ? `${v}&nbsp;(${shortSize(v)})` : v}),
   ]);
 }
 
@@ -114,11 +174,16 @@ function expandSetLike(obj) {
     .sort(byFirstColumn);
 }
 
-function expandMapLike(obj) {
+function mapLikeToKeyValueArray(obj) {
   const entries = [];
   for (const key in obj) {
     entries.push([key, obj[key]]);
   }
+  return entries;
+}
+
+function expandMapLike(obj) {
+  const entries = mapLikeToKeyValueArray(obj);
   const longestDesc = entries.reduce((longest, [description]) => Math.max(longest, description.length), 0);  
   return entries
     .map(([k, v]) => addValueRow('feature', k.padEnd(longestDesc + 1), v))
@@ -141,6 +206,17 @@ function log(...args) {
   const elem = document.createElement('pre');
   elem.textContent = args.join(' ');
   document.body.appendChild(elem);
+}
+
+function markDifferencesInLimits(limits) {
+  return Object.fromEntries(
+    mapLikeToKeyValueArray(limits)
+      .map(([k, v]) => {
+        const info = kLimitInfo[k];
+        const isDiff = info && info.default !== v;
+        return [k, isDiff ? [v, 'different'] : v]
+      })
+  );
 }
 
 async function adapterToElements(adapter) {
@@ -201,7 +277,7 @@ async function adapterToElements(adapter) {
         'isCompatibilityMode': adapter.isCompatibilityMode,
       }),
       limitsSectionElem,
-      ...mapLikeToTableRows(adapter.limits),
+      ...mapLikeToTableRows(markDifferencesInLimits(adapter.limits)),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'features:')]),
       ]),
