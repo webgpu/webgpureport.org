@@ -16,44 +16,44 @@ export const kMaxUnsignedLongLongValue = Number.MAX_SAFE_INTEGER;
 
 /** Info for each entry of GPUSupportedLimits */
 const kLimitInfo = /* prettier-ignore */ makeTable(
-                                               [    'class', 'default', 'compat' ,            'maximumValue'],
-                                               [  'maximum',          ,          ,     kMaxUnsignedLongValue], {
-  'maxTextureDimension1D':                     [           ,      8192,      4096,                          ],
-  'maxTextureDimension2D':                     [           ,      8192,      4096,                          ],
-  'maxTextureDimension3D':                     [           ,      2048,      1024,                          ],
-  'maxTextureArrayLayers':                     [           ,       256,       256,                          ],
+                                               [    'class','type'    , 'default', 'compat' ,            'maximumValue'],
+                                               [  'maximum',          ,          ,          ,     kMaxUnsignedLongValue], {
+  'maxTextureDimension1D':                     [           , 'size'   ,      8192,      4096,                          ],
+  'maxTextureDimension2D':                     [           , 'size'   ,      8192,      4096,                          ],
+  'maxTextureDimension3D':                     [           , 'size'   ,      2048,      1024,                          ],
+  'maxTextureArrayLayers':                     [           , 'size'   ,       256,       256,                          ],
 
-  'maxBindGroups':                             [           ,         4,         4,                          ],
-  'maxBindingsPerBindGroup':                   [           ,      1000,      1000,                          ],
-  'maxDynamicUniformBuffersPerPipelineLayout': [           ,         8,         8,                          ],
-  'maxDynamicStorageBuffersPerPipelineLayout': [           ,         4,         4,                          ],
-  'maxSampledTexturesPerShaderStage':          [           ,        16,        16,                          ],
-  'maxSamplersPerShaderStage':                 [           ,        16,        16,                          ],
-  'maxStorageBuffersPerShaderStage':           [           ,         8,         4,                          ],
-  'maxStorageTexturesPerShaderStage':          [           ,         4,         4,                          ],
-  'maxUniformBuffersPerShaderStage':           [           ,        12,        12,                          ],
+  'maxBindGroups':                             [           , 'count'  ,         4,         4,                          ],
+  'maxBindingsPerBindGroup':                   [           , 'count'  ,      1000,      1000,                          ],
+  'maxDynamicUniformBuffersPerPipelineLayout': [           , 'count'  ,         8,         8,                          ],
+  'maxDynamicStorageBuffersPerPipelineLayout': [           , 'count'  ,         4,         4,                          ],
+  'maxSampledTexturesPerShaderStage':          [           , 'count'  ,        16,        16,                          ],
+  'maxSamplersPerShaderStage':                 [           , 'count'  ,        16,        16,                          ],
+  'maxStorageBuffersPerShaderStage':           [           , 'count'  ,         8,         4,                          ],
+  'maxStorageTexturesPerShaderStage':          [           , 'count'  ,         4,         4,                          ],
+  'maxUniformBuffersPerShaderStage':           [           , 'count'  ,        12,        12,                          ],
 
-  'maxUniformBufferBindingSize':               [           ,     65536,     16384, kMaxUnsignedLongLongValue],
-  'maxStorageBufferBindingSize':               [           , 134217728, 134217728, kMaxUnsignedLongLongValue],
-  'minUniformBufferOffsetAlignment':           ['alignment',       256,       256,                          ],
-  'minStorageBufferOffsetAlignment':           ['alignment',       256,       256,                          ],
+  'maxUniformBufferBindingSize':               [           , 'mem'    ,     65536,     16384, kMaxUnsignedLongLongValue],
+  'maxStorageBufferBindingSize':               [           , 'mem'    , 134217728, 134217728, kMaxUnsignedLongLongValue],
+  'minUniformBufferOffsetAlignment':           ['alignment', 'mem'    ,       256,       256,                          ],
+  'minStorageBufferOffsetAlignment':           ['alignment', 'mem'    ,       256,       256,                          ],
 
-  'maxVertexBuffers':                          [           ,         8,         8,                          ],
-  'maxBufferSize':                             [           , 268435456, 268435456, kMaxUnsignedLongLongValue],
-  'maxVertexAttributes':                       [           ,        16,        16,                          ],
-  'maxVertexBufferArrayStride':                [           ,      2048,      2048,                          ],
-  'maxInterStageShaderComponents':             [           ,        60,        60,                          ],
-  'maxInterStageShaderVariables':              [           ,        16,        16,                          ],
+  'maxVertexBuffers':                          [           , 'count'  ,         8,         8,                          ],
+  'maxBufferSize':                             [           , 'mem'    , 268435456, 268435456, kMaxUnsignedLongLongValue],
+  'maxVertexAttributes':                       [           , 'count'  ,        16,        16,                          ],
+  'maxVertexBufferArrayStride':                [           , 'mem'    ,      2048,      2048,                          ],
+  'maxInterStageShaderComponents':             [           , 'count'  ,        60,        60,                          ],
+  'maxInterStageShaderVariables':              [           , 'count'  ,        16,        16,                          ],
 
-  'maxColorAttachments':                       [           ,         8,         4,                          ],
-  'maxColorAttachmentBytesPerSample':          [           ,        32,        32,                          ],
+  'maxColorAttachments':                       [           , 'count'  ,         8,         4,                          ],
+  'maxColorAttachmentBytesPerSample':          [           , 'mem'    ,        32,        32,                          ],
 
-  'maxComputeWorkgroupStorageSize':            [           ,     16384,     16384,                          ],
-  'maxComputeInvocationsPerWorkgroup':         [           ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeX':                  [           ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeY':                  [           ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeZ':                  [           ,        64,        64,                          ],
-  'maxComputeWorkgroupsPerDimension':          [           ,     65535,     65535,                          ],
+  'maxComputeWorkgroupStorageSize':            [           , 'mem'    ,     16384,     16384,                          ],
+  'maxComputeInvocationsPerWorkgroup':         [           , 'count'  ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeX':                  [           , 'size'   ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeY':                  [           , 'size'   ,       256,       128,                          ],
+  'maxComputeWorkgroupSizeZ':                  [           , 'size'   ,        64,        64,                          ],
+  'maxComputeWorkgroupsPerDimension':          [           , 'mem'    ,     65535,     65535,                          ],
 });
 
 console.log(kLimitInfo);
@@ -141,8 +141,7 @@ const saveData = (function() {
 }());
 
 const shortSize = (function() {
-  const suffixes = ['b', 'k', 'mb', 'gb', 'tb', 'pb'];
-  return function(size) {
+  return function(size, suffixes = ['', 'k', 'm', 'g', 't', 'p']) {
     const suffixNdx = Math.log2(Math.abs(size)) / 10 | 0;
     const suffix = suffixes[Math.min(suffixNdx, suffixes.length - 1)];
     const base = 2 ** (suffixNdx * 10);
@@ -150,11 +149,29 @@ const shortSize = (function() {
   };
 })();
 
+const shortSizeMem = (function() {
+  const suffixes = ['b', 'k', 'mb', 'gb', 'tb', 'pb'];
+  return function(size) {
+    return shortSize(size, suffixes);
+  };
+})();
+
+const shortSizeByType = (function() {
+  const suffixesByType = {
+    'mem': ['b', 'k', 'mb', 'gb', 'tb', 'pb'],
+    'size': ['', 'k', 'm', 'g', 't', 'p'],
+    'count': ['', 'k', 'm', 'g', 't', 'p'],
+  };
+  return function(size, type) {
+    return shortSize(size, suffixesByType[type] || suffixesByType.count);
+  };
+})();
+
 function addValueRow(className, k, _v) {
-  const [v, valueClassName] = Array.isArray(_v) ? _v : [_v, ''];
+  const [v, attribs] = Array.isArray(_v) ? _v : [_v, {}];
   return el('tr', {className}, [
     el('td', {textContent: k}),
-    el('td', {className: valueClassName, innerHTML: v >= 1024 ? `${v}&nbsp;(${shortSize(v)})` : v}),
+    el('td', {...attribs, textContent: v}),
   ]);
 }
 
@@ -214,7 +231,13 @@ function markDifferencesInLimits(limits) {
       .map(([k, v]) => {
         const info = kLimitInfo[k];
         const isDiff = info && info.default !== v;
-        return [k, isDiff ? [v, 'different'] : v]
+        const value = v > 1024 && info ? `${v} (${shortSizeByType(v, info.type)})` : v;
+        return [
+          k,
+          isDiff
+            ? [value, {className: 'different nowrap', title: `default: ${shortSizeByType(info.default, info.type)}`}]
+            : [value, {className: 'nowrap', title: 'same as default'}]
+        ];
       })
   );
 }
