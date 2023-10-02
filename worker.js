@@ -20,6 +20,16 @@ async function checkWebGPU(id, data) {
     }
   }
 
+  try {
+    const offscreenCanvas = new OffscreenCanvas(300, 150);
+    results.offscreen = true;
+    const ctx = offscreenCanvas.getContext('2d');
+    results.twoD = !!ctx;
+  } catch (e) {
+    console.error(e);
+  }
+
+
   results.rAF = !!self.requestAnimationFrame;
 
   postMessage({id, data: results});

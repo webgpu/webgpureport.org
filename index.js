@@ -56,8 +56,6 @@ const kLimitInfo = /* prettier-ignore */ makeTable(
   'maxComputeWorkgroupsPerDimension':          [           , 'mem'    ,     65535,     65535,                          ],
 });
 
-console.log(kLimitInfo);
-
 function createElem(tag, attrs = {}, children = []) { 
   const elem = document.createElement(tag);
   if (typeof attrs === 'string') {
@@ -199,12 +197,15 @@ function mapLikeToKeyValueArray(obj) {
   return entries;
 }
 
-function expandMapLike(obj) {
+function expandMapLike(obj, sort = true) {
   const entries = mapLikeToKeyValueArray(obj);
   const longestDesc = entries.reduce((longest, [description]) => Math.max(longest, description.length), 0);  
-  return entries
-    .map(([k, v]) => addValueRow('feature', k.padEnd(longestDesc + 1), v))
-    .sort(byFirstColumn);
+  const result = entries
+    .map(([k, v]) => addValueRow('feature', k.padEnd(longestDesc + 1), v));
+  if (sort) {
+    result.sort(byFirstColumn);
+  }
+  return result;
 }
 
 function setLikeToTableRows(values) {
@@ -213,9 +214,9 @@ function setLikeToTableRows(values) {
     : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
 }
 
-function mapLikeToTableRows(values) {
+function mapLikeToTableRows(values, sort = true) {
   return values
-    ? expandMapLike(values)
+    ? expandMapLike(values, sort)
     : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
 }
 
@@ -412,7 +413,7 @@ async function checkWorkers() {
   };
 
   const worker = new WorkerHelper('worker.js');
-  const {rAF, gpu, adapter, device, context} = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
+  const {rAF, gpu, adapter, device, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
   addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
   if (gpu) {
     addSupportsRow('requestAdapter', adapter);
@@ -426,6 +427,8 @@ async function checkWorkers() {
 
   addSupportsRow('requestAnimationFrame', rAF);
   addSupportsRow('transferControlToOffscreen', offscreen);
+  addSupportsRow('OffscreenCanvas', offscreenSupported);
+  addSupportsRow('CanvasRenderingContext2D', twoD);
 
   let moduleSupport = false;
   try {
@@ -438,7 +441,7 @@ async function checkWorkers() {
   addSupportsRow('es6 modules', moduleSupport);
 
   appendElem(body, 'table', { className: 'worker' }, [
-    el('tbody', {}, mapLikeToTableRows(obj)),
+    el('tbody', {}, mapLikeToTableRows(obj, false)),
   ]);
 }
 
