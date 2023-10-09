@@ -271,40 +271,7 @@ async function adapterToElements(adapter) {
   return el('table', {}, [
     el('tbody', {}, [
       el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2}, [
-          el('div', {className: 'space-around'}, [
-            createHeading('div', '-', 'adapter info:'),
-            ...(adapterInfo ? [el('button', {
-              type: 'button', 
-              className: 'hide-on-copy',
-              onClick: async function() {
-                // Note: The entire thing is a little big wonky. In order to make the data line up
-                // all the data is in a single table so that the largest cell in each column defines the
-                // size of that column. Where as, the data looks like it wants each section to have it's own
-                // hierarchy of elements. But, because it's all one table there's no trivial definition of
-                // "start of section" or "end of section". We end up adding rows by finding the top of our
-                // section, then finding the next section, then inserting rows before that.
-                const tbody = limitsSectionElem.parentElement;
-                try {
-                  const adapterInfo = await adapter.requestAdapterInfo(['vendor', 'architecture', 'device', 'description']);
-                  const rows = mapLikeToTableRows(adapterInfo);
-                  for (const row of rows) {
-                    const desc = row.cells[0];
-                    desc.textContent = `unmasked: ${desc.textContent}`;
-                    tbody.insertBefore(row, limitsSectionElem);
-                  }
-                } catch (e) {
-                  const row = el('tr', {className: 'error'}, [
-                    el('td', {colSpan: 2, textContent: e.toString()}),
-                  ]);
-                  tbody.insertBefore(row, limitsSectionElem);
-                }
-                this.remove();
-              },
-              textContent: 'request unmasked',
-            })] : []),
-          ]),
-        ]),
+        el('td', {colSpan: 2}, [createHeading('div', '-', 'adapter info:')]),
       ]),
       ...mapLikeToTableRows(adapterInfo),
       el('tr', {className: 'section'}, [
