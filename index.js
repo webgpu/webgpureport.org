@@ -244,15 +244,20 @@ function markDifferencesInLimits(adapter) {
       .map(([k, v]) => {
         const info = kLimitInfo[k];
         const isDiff = info && info.default !== v;
-        const diffClass = isDiff
-           ? differenceWorse(info, v) ? 'different-worse' : 'different-better'
-           : '';
+        const diffClass = info
+           ?  (isDiff
+                 ? differenceWorse(info, v) ? 'different-worse' : 'different-better'
+                : '')
+           : 'unknown';
         const value = v > 1024 && info ? `${v} (${shortSizeByType(v, info.type)})` : v;
         return [
           k,
           isDiff
             ? [value, {className: `${diffClass} nowrap`, title: `default${adapter.isCompatibilityMode ? ' in compat' : ''}: ${shortSizeByType(adapter.isCompatibilityMode ? info.compat : info.default, info.type)}`}]
-            : [value, {className: 'nowrap', title: 'same as default'}]
+            : info
+               ? [value, {className: 'nowrap', title: 'same as default'}]
+               : [value, {className: 'unknown nowrap', title: 'unknown limit (new?)'}]
+
         ];
       })
   );

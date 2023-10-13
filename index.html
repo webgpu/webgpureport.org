@@ -42,6 +42,7 @@
   --header-background-color: #DDD;
   --header-text-color: #00A;
   --different-text-color: magenta;
+  --unknown-text-color: #458;
 }
 @media (prefers-color-scheme: dark) {
 
@@ -58,6 +59,7 @@
     --header-background-color: #333;
     --header-text-color: lightgreen;
     --different-text-color: orange;
+    --unknown-text-color: #8AF;
   }
 } 
 body {
@@ -132,6 +134,9 @@ h2, td {
 }
 .different-worse {
   color: var(--error-text-color);
+}
+.unknown {
+  color: var(--unknown-text-color);
 }
 
 .limit>td:first-child,
