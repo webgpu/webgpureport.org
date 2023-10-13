@@ -24,7 +24,7 @@ const kLimitInfo = /* prettier-ignore */ makeTable(
   'maxTextureArrayLayers':                     [           , 'size'   ,       256,       256,                          ],
 
   'maxBindGroups':                             [           , 'count'  ,         4,         4,                          ],
-  'maxBindGroupsPlusVertexBuffers	':           [           , 'count'  ,        24,        24,                          ],
+  'maxBindGroupsPlusVertexBuffers':            [           , 'count'  ,        24,        24,                          ],
   'maxBindingsPerBindGroup':                   [           , 'count'  ,      1000,      1000,                          ],
   'maxDynamicUniformBuffersPerPipelineLayout': [           , 'count'  ,         8,         8,                          ],
   'maxDynamicStorageBuffersPerPipelineLayout': [           , 'count'  ,         4,         4,                          ],
@@ -557,3 +557,4 @@ async function main() {
 }
 
 main();
+
