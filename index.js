@@ -258,6 +258,26 @@ function markDifferencesInLimits(adapter) {
   );
 }
 
+function parseAdapterInfo(adapterInfo) {
+  return Object.fromEntries(
+    mapLikeToKeyValueArray(adapterInfo).map(([k, v]) => {
+      if (k !== "memoryHeaps") {
+        return [k, v];
+      }
+      const value = adapterInfo.memoryHeaps.map(({ size, properties }) => {
+        const heapProperties = [];
+        for (const [k, v] of Object.entries(GPUHeapProperty)) {
+          if ((parseInt(properties, 10) & v) !== 0) {
+            heapProperties.push(k);
+          }
+        }
+        return `[ size: ${size}, properties: ${heapProperties.join(" | ")} ]`;
+      });
+      return [k, [value.join(", ")]];
+    }),
+  );
+}
+
 async function adapterToElements(adapter) {
   if (!adapter) {
     return;
@@ -274,7 +294,7 @@ async function adapterToElements(adapter) {
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'adapter info:')]),
       ]),
-      ...mapLikeToTableRows(adapterInfo),
+      ...mapLikeToTableRows(parseAdapterInfo(adapterInfo)),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
       ]),
