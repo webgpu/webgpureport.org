@@ -160,6 +160,9 @@ look better, at copy/download time we make the text visible
     <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report <div class="hide-on-copy" title="download to file" id="download">⬇️</div></h1>
     <div id="content"></div>
 <style>
+#forkongithub {
+    pointer-events: none;
+}
 #forkongithub a {
     background: #000;
     color: #fff;
@@ -173,6 +176,7 @@ look better, at copy/download time we make the text visible
     position: relative;
     transition: 0.5s;
     display: block;
+    pointer-events: all;
 }
 #forkongithub a:hover {
     background: #c11;
