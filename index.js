@@ -393,6 +393,8 @@ async function checkMisc({haveFallback}) {
   if (!haveFallback) {
     obj['fallback adapter'] = 'not supported';
   }
+  const wgslLanguageFeatures = navigator.gpu.wgslLanguageFeatures || [];
+  obj.wgslLanguageFeatures = [...wgslLanguageFeatures].join(', ');
 
   appendElem(body, 'table', { className: 'misc' }, [
     el('tbody', {}, mapLikeToTableRows(obj)),
