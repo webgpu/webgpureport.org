@@ -283,6 +283,16 @@ function parseAdapterInfo(adapterInfo) {
   );
 }
 
+function parseAdapterFlags(adapter) {
+  const flags = {
+    'isFallbackAdapter': adapter.isFallbackAdapter,
+  };
+  if ('isCompatibilityMode' in adapter) {
+    flags.isCompatibilityMode = adapter.isCompatibilityMode
+  }
+  return flags;
+}
+
 async function adapterToElements(adapter) {
   if (!adapter) {
     return;
@@ -303,10 +313,7 @@ async function adapterToElements(adapter) {
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
       ]),
-      ...mapLikeToTableRows({
-        'isFallbackAdapter': adapter.isFallbackAdapter,
-        'isCompatibilityMode': adapter.isCompatibilityMode,
-      }),
+      ...mapLikeToTableRows(parseAdapterFlags(adapter)),
       limitsSectionElem,
       ...mapLikeToTableRows(markDifferencesInLimits(adapter)),
       el('tr', {className: 'section'}, [
