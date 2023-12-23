@@ -149,6 +149,9 @@ h2, td {
   padding-left: 1em;
   cursor: pointer;
 }
+#download img {
+  width: 1em;
+}
 /*
 This class is used to show text that is only available
 when the user copies text or downloads the report to a file.
@@ -162,7 +165,7 @@ look better, at copy/download time we make the text visible
     <style id="dynamic-style"></style>
   </head>
   <body>
-    <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report <div class="hide-on-copy" title="download to file" id="download">⬇️</div></h1>
+    <h1><img src="webgpu-notext.svg" class="logo">WebGPU Report <div class="hide-on-copy" title="download to file" id="download"><img src="download-save.svg"></div></h1>
     <div id="content"></div>
 <style>
 #forkongithub {
