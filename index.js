@@ -385,7 +385,16 @@ class WorkerHelper {
 
 async function checkMisc({haveFallback}) {
   const body = document.body;
-  body.appendChild(createHeading('h2', '=', 'misc'));
+
+  body.appendChild(createHeading('h2', '-', 'wgsl language features:'));
+
+  appendElem(body, 'table', { className: 'misc' }, [
+    el('tbody', {}, [
+      ...setLikeToTableRows(navigator.gpu.wgslLanguageFeatures || []),
+    ]),
+  ]);
+
+  body.appendChild(createHeading('h2', '-', 'misc:'));
 
   const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -393,8 +402,6 @@ async function checkMisc({haveFallback}) {
   if (!haveFallback) {
     obj['fallback adapter'] = 'not supported';
   }
-  const wgslLanguageFeatures = navigator.gpu.wgslLanguageFeatures || [];
-  obj.wgslLanguageFeatures = [...wgslLanguageFeatures].join(', ');
 
   appendElem(body, 'table', { className: 'misc' }, [
     el('tbody', {}, mapLikeToTableRows(obj)),
