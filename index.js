@@ -516,6 +516,7 @@ function getSelectionText(all) {
     const text = selection.toString()
                      .replace(/\s*\n\s*\n\s*\n+/g, '\n\n')
                      .replace(/\t/g, ' ')
+                     .replace(/([^ ][^ ])\n/g, '$1  \n')
                      .trim();
 
     if (all) {
