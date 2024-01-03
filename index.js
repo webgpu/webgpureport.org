@@ -386,7 +386,7 @@ class WorkerHelper {
 async function checkMisc({haveFallback}) {
   const body = document.body;
 
-  body.appendChild(createHeading('h2', '-', 'wgsl language features:'));
+  body.appendChild(createHeading('h2', '-', 'WGSL language features:'));
 
   appendElem(body, 'table', { className: 'misc' }, [
     el('tbody', {}, [
