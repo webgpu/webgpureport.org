@@ -1,4 +1,3 @@
-
 function makeTable(members, defaults, table) {
   const result = {};
   for (const [k, v] of Object.entries(table)) {
@@ -456,8 +455,8 @@ async function checkWorkers() {
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
   const parts = [
-    ...(adapter.isFallbackAdapter ? ['fallback'] : []),
-    ...(adapter.isCompatibilityMode ? ['compatibilityMode'] : []),
+    ...(adapter?.isFallbackAdapter ? ['fallback'] : []),
+    ...(adapter?.isCompatibilityMode ? ['compatibilityMode'] : []),
   ];
   return parts.length > 0
     ? parts.join(' ')
