@@ -162,6 +162,38 @@ look better, at copy/download time we make the text visible
 .copy {
   display: none;
 }
+
+@media (max-width: 520px) {
+  .limit>td:first-child,
+  .feature>td:first-child,
+  .worker>td:first-child {
+    padding-left: 0em;
+  }
+  .limit>td:nth-child(2),
+  .feature>td:nth-child(2),
+  .worker>td:nth-child(2) {
+    text-align: right;
+  }
+  .adapters,
+  .adapter,
+  table {
+    width: 100%;
+  }
+  tr {
+    display: flex;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  tr>td {
+    flex: 1 1 auto;
+  }
+  td[colspan]>div {
+    width: 100%;
+  }
+}
+
+
     </style>
     <style id="dynamic-style"></style>
   </head>
@@ -206,7 +238,7 @@ look better, at copy/download time we make the text visible
     top: auto;
 }
 
-@media screen and (min-width: 400px){
+@media screen and (min-width: 420px){
     #forkongithub{
         position: fixed;
         display: block;
