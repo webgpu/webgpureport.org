@@ -179,14 +179,21 @@ look better, at copy/download time we make the text visible
   table {
     width: 100%;
   }
+  .adapter {
+    margin-right: 0;
+  }
   tr {
     display: flex;
     max-width: 100%;
     flex-wrap: wrap;
     justify-content: space-between;
   }
-  tr>td {
+  td {
     flex: 1 1 auto;
+  }
+  h2,
+  td {
+    padding: 0 3px 0 3px;
   }
   td[colspan]>div {
     width: 100%;
@@ -215,7 +222,6 @@ look better, at copy/download time we make the text visible
     font-size: 12px;
     line-height: 24px;
     position: relative;
-    transition: 0.5s;
     display: block;
     pointer-events: all;
 }
