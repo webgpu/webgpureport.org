@@ -82,6 +82,11 @@ function createElem(tag, attrs = {}, children = []) {
   return elem;
 }
 
+const docElem = document.querySelector('#content');
+function addElemToDocument(elem) {
+  docElem.appendChild(elem);
+}
+
 /**
  * Creates a hidden span that will only be used when the when
  * the user copies or downloads text.
@@ -115,12 +120,6 @@ function createHeading(tag, padChar, attrs = {}, children = []) {
   ]);
 }
 
-function appendElem(parent, ...args) {
-  const elem = createElem(...args);
-  parent.appendChild(elem);
-  return elem;
-}
-
 const el = createElem;
 
 /**
@@ -128,7 +127,7 @@ const el = createElem;
  * save as a file.
  */
 const saveData = (function() {
-  const a = appendElem(document.body, 'a');
+  const a = document.body.appendChild(el('a'));
   a.style.display = 'none';
   return function saveData(blob, fileName) {
     const url = window.URL.createObjectURL(blob);
@@ -223,7 +222,7 @@ function mapLikeToTableRows(values, sort = true) {
 function log(...args) {
   const elem = document.createElement('pre');
   elem.textContent = args.join(' ');
-  document.body.appendChild(elem);
+  addElemToDocument(elem);
 }
 
 function differenceWorse(info, v) {
@@ -383,17 +382,15 @@ class WorkerHelper {
 }
 
 async function checkMisc({haveFallback}) {
-  const body = document.body;
+  addElemToDocument(createHeading('h2', '-', 'WGSL language features:'));
 
-  body.appendChild(createHeading('h2', '-', 'WGSL language features:'));
-
-  appendElem(body, 'table', { className: 'misc' }, [
+  addElemToDocument(el('table', { className: 'misc' }, [
     el('tbody', {}, [
       ...setLikeToTableRows(navigator.gpu.wgslLanguageFeatures || []),
     ]),
-  ]);
+  ]));
 
-  body.appendChild(createHeading('h2', '-', 'misc:'));
+  addElemToDocument(createHeading('h2', '-', 'misc:'));
 
   const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -402,14 +399,13 @@ async function checkMisc({haveFallback}) {
     obj['fallback adapter'] = 'not supported';
   }
 
-  appendElem(body, 'table', { className: 'misc' }, [
+  addElemToDocument(el('table', { className: 'misc' }, [
     el('tbody', {}, mapLikeToTableRows(obj)),
-  ]);
+  ]));
 }
 
 async function checkWorkers() {
-  const body = document.body;
-  body.appendChild(createHeading('h2', '=', 'workers'));
+  addElemToDocument(createHeading('h2', '=', 'workers'));
 
   const canvas = document.createElement('canvas');
   const offscreen = !!canvas.transferControlToOffscreen
@@ -448,9 +444,9 @@ async function checkWorkers() {
   }
   addSupportsRow('es6 modules', moduleSupport);
 
-  appendElem(body, 'table', { className: 'worker' }, [
+  addElemToDocument(el('table', { className: 'worker' }, [
     el('tbody', {}, mapLikeToTableRows(obj, false)),
-  ]);
+  ]));
 }
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
@@ -568,13 +564,13 @@ async function main() {
   const actualAdaptersIds = [...adapterIds].filter(([, {elem}]) => !!elem);
   if (actualAdaptersIds.length === 0) {
     if (adapterIds.size > 0) {
-      document.body.appendChild(el('div', {textContent: `webgpu appears to be disabled`}));
+      addElemToDocument(el('div', {textContent: `webgpu appears to be disabled`}));
     } else {
-      document.body.appendChild(el('div', {textContent: `webgpu appears to not be supported`}));
+      addElemToDocument(el('div', {textContent: `webgpu appears to not be supported`}));
     }
   }
   window.a = adapterIds;
-  document.body.appendChild(el('div', {className: 'adapters'},
+  addElemToDocument(el('div', {className: 'adapters'},
     [...actualAdaptersIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
       createHeading('h2', '=', `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`),
       elem,
