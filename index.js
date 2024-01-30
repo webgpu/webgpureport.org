@@ -323,13 +323,13 @@ async function adapterToElements(adapter) {
 }
 
 class WorkerHelper {
-  constructor(url) {
+  constructor(url, workerType) {
     this._id = 0;
     this._promisesByIdMap = new Map();
     this._messagesByIdMap = new Map();
     this._pinged = false;
     this._bad = false;
-    this._worker = new Worker(url, {type: 'module'});
+    this._worker = this._createWorker(url, workerType);
     this._worker.addEventListener('error', (e) => {
       this._bad = true;
       // reject all existing promises
@@ -351,6 +351,17 @@ class WorkerHelper {
         //
       }
     })();
+  }
+  _createWorker(url, workerType) {
+    const workerUrl = `${url}?${workerType}`;
+    if (workerType === 'dedicated') {
+      return new Worker(workerUrl, {type: 'module'});
+    }
+    if (workerType === 'shared') {
+      const worker = new SharedWorker(workerUrl, {type: 'module'});
+      return worker.port;
+    }
+    throw new Error(`unknown worker type: ${workerType}`)
   }
   _process(id) {
     const p = this._promisesByIdMap.get(id);
@@ -404,8 +415,8 @@ async function checkMisc({haveFallback}) {
   ]));
 }
 
-async function checkWorkers() {
-  addElemToDocument(createHeading('h2', '=', 'workers'));
+async function checkWorkers(workerType) {
+  addElemToDocument(createHeading('h2', '=', `${workerType} workers:`));
 
   const canvas = document.createElement('canvas');
   const offscreen = !!canvas.transferControlToOffscreen
@@ -416,7 +427,7 @@ async function checkWorkers() {
     obj[feature] = supported ? success : fail;
   };
 
-  const worker = new WorkerHelper('worker.js');
+  const worker = new WorkerHelper('worker.js', workerType);
   const {rAF, gpu, adapter, device, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
   addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
   if (gpu) {
@@ -576,7 +587,8 @@ async function main() {
       elem,
     ]))));
   await checkMisc({haveFallback});
-  await checkWorkers();
+  await checkWorkers('dedicated');
+  await checkWorkers('shared');
 
   // Add a copy handler to massage the text for plain text.
   document.addEventListener('copy', (event) => {

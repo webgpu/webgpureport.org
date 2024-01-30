@@ -32,11 +32,11 @@ async function checkWebGPU(id, data) {
 
   results.rAF = !!self.requestAnimationFrame;
 
-  postMessage({id, data: results});
+  this.postMessage({id, data: results});
 }
 
 async function ping(id) {
-  postMessage({id, data: { }});
+  this.postMessage({id, data: { }});
 }
 
 const handlers = {
@@ -44,11 +44,22 @@ const handlers = {
   checkWebGPU,
 };
 
-self.onmessage = function(e) {
+function handleMessage(e) {
   const {command, id, data} = e.data;
   const handler = handlers[command];
   if (!handler) {
     throw new Error(`unknown command: ${command}`);
   }
-  handler(id, data);
+  handler.call(this, id, data);
+}
+
+self.onmessage = function(e) {
+  handleMessage.call(self, e);
+};
+
+self.onconnect = function(e) {
+  const port = e.ports[0];
+  port.onmessage = function(event) {
+    handleMessage.call(port, event);
+  };
 };
