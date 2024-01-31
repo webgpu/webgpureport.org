@@ -339,6 +339,14 @@ class WorkerHelper {
     });
     this._worker.onmessage = (e) => {
       const {id, data} = e.data;
+      if (data == "messageerror") {
+        this._bad = true;
+        // resolve all existing promises
+        this._promisesByIdMap.forEach(({resolve}) => {
+          resolve({});
+        });
+        return;
+      }
       this._messagesByIdMap.set(id, data);
       this._process(id);
     };
@@ -440,20 +448,12 @@ async function checkWorkers(workerType) {
     }
   }
 
-  addSupportsRow('requestAnimationFrame', rAF);
+  if (workerType === "dedicated") {
+    addSupportsRow('requestAnimationFrame', rAF);
+  }
   addSupportsRow('transferControlToOffscreen', offscreen);
   addSupportsRow('OffscreenCanvas', offscreenSupported);
   addSupportsRow('CanvasRenderingContext2D', twoD);
-
-  let moduleSupport = false;
-  try {
-    const workerModule = new WorkerHelper('worker-module.js');
-    const data = await workerModule.getMessage('ping');
-    moduleSupport = true;
-  } catch (e) {
-    //
-  }
-  addSupportsRow('es6 modules', moduleSupport);
 
   addElemToDocument(el('table', { className: 'worker' }, [
     el('tbody', {}, mapLikeToTableRows(obj, false)),

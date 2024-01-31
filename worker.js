@@ -62,4 +62,7 @@ self.onconnect = function(e) {
   port.onmessage = function(event) {
     handleMessage.call(port, event);
   };
+  port.onmessageerror = function() {
+    port.postMessage({data: 'messageerror'});
+  };
 };
