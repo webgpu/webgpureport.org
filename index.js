@@ -432,7 +432,7 @@ async function checkWorkers(workerType) {
 
   const obj = {};
   const addSupportsRow = (feature, supported, success = 'successful', fail = 'failed') => {
-    obj[feature] = supported ? success : fail;
+    obj[feature] = supported ? success : [fail, {className: 'not-supported'}];
   };
 
   const worker = new WorkerHelper('worker.js', workerType);
@@ -574,11 +574,16 @@ async function main() {
 
   const actualAdaptersIds = [...adapterIds].filter(([, {elem}]) => !!elem);
   if (actualAdaptersIds.length === 0) {
-    if (adapterIds.size > 0) {
-      addElemToDocument(el('div', {textContent: `webgpu appears to be disabled`}));
-    } else {
-      addElemToDocument(el('div', {textContent: `webgpu appears to not be supported`}));
-    }
+    addElemToDocument(
+      el(
+        'div', 
+        {
+          className: 'not-supported',
+          textContent: adapterIds.size > 0
+            ? `webgpu appears to be disabled`
+            : `webgpu appears to not be supported`,
+          },
+      ));
   }
   window.a = adapterIds;
   addElemToDocument(el('div', {className: 'adapters'},
