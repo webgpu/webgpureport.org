@@ -210,7 +210,7 @@ function expandMapLike(obj, sort = true) {
 function setLikeToTableRows(values) {
   return values
     ? expandSetLike(values)
-    : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
+    : [el('tr', {}, [el('td', {colSpan: 2, className: 'nowrap', textContent: 'not yet implemented by this browser'})])];
 }
 
 function mapLikeToTableRows(values, sort = true) {
@@ -435,7 +435,15 @@ async function checkWorkers(workerType) {
     obj[feature] = supported ? success : [fail, {className: 'not-supported'}];
   };
 
-  const worker = new WorkerHelper('worker.js', workerType);
+  let worker;
+  try {
+    worker = new WorkerHelper('worker.js', workerType);
+  } catch(error) {
+    addElemToDocument(el('table', { className: 'worker' }, [
+      el('tbody', {}, setLikeToTableRows(undefined)),
+    ]));
+    return;
+  }
   const {rAF, gpu, adapter, device, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
   addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
   if (gpu) {
