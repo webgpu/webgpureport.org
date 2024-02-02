@@ -1,4 +1,4 @@
-async function createWebGPUDevice(adapterDesc, results) {
+async function createWebGPUDevice(data, adapterDesc, results) {
   const adapter = await navigator.gpu.requestAdapter(adapterDesc);
   if (adapter) {
     results.adapter = true;
@@ -20,15 +20,16 @@ async function checkWebGPU(id, data) {
   }
 
   try {
-    createWebGPUDevice({}, results);
+    await createWebGPUDevice(data, {}, results);
   } catch (e) {
     results.error = (e.message || e).toString();
   }
 
   if (!results.adapter) {
     try {
-      createWebGPUDevice({compatibilityMode: true}, results);
+      await createWebGPUDevice(data, {compatibilityMode: true}, results);
       results.compat = true;
+      delete results.error;
     } catch (e) {
       results.error = (e.message || e).toString();
     }
