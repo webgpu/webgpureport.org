@@ -416,17 +416,18 @@ class WorkerHelper {
   }
 }
 
-async function checkMisc({haveFallback}) {
-  addElemToDocument(createHeading('h2', '-', 'WGSL language features:'));
-
-  addElemToDocument(el('table', { className: 'misc' }, [
-    el('tbody', {}, [
-      ...setLikeToTableRows(navigator.gpu.wgslLanguageFeatures || []),
+function checkWGSLLanguageFeatures(parent) {
+  parent.appendChild(el('div', {className: 'other'}, [
+    (createHeading('h2', '-', 'WGSL language features:')),
+    el('table', { className: 'misc' }, [
+      el('tbody', {}, [
+        ...setLikeToTableRows(navigator.gpu.wgslLanguageFeatures || []),
+      ]),
     ]),
   ]));
+}
 
-  addElemToDocument(createHeading('h2', '-', 'misc:'));
-
+function checkMisc(parent, {haveFallback}) {
   const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   obj.getPreferredCanvasFormat = presentationFormat;
@@ -434,14 +435,15 @@ async function checkMisc({haveFallback}) {
     obj['fallback adapter'] = 'not supported';
   }
 
-  addElemToDocument(el('table', { className: 'misc' }, [
-    el('tbody', {}, mapLikeToTableRows(obj)),
+  parent.appendChild(el('div', {className: 'other'}, [
+    (createHeading('h2', '-', 'misc:')),
+    el('table', { className: 'misc' }, [
+        el('tbody', {}, mapLikeToTableRows(obj)),
+    ]),
   ]));
 }
 
-async function checkWorkers(workerType) {
-  addElemToDocument(createHeading('h2', '=', `${workerType} workers:`));
-
+async function getWorkerInfo(workerType) {
   const canvas = document.createElement('canvas');
   const offscreen = !!canvas.transferControlToOffscreen
   let offscreenCanvas = offscreen && canvas.transferControlToOffscreen();
@@ -456,10 +458,9 @@ async function checkWorkers(workerType) {
     worker = new WorkerHelper('worker.js', workerType);
     await worker.ready();
   } catch(error) {
-    addElemToDocument(el('table', { className: 'worker' }, [
+    return el('table', { className: 'worker' }, [
       el('tbody', {}, setLikeToTableRows(undefined)),
-    ]));
-    return;
+    ]);
   }
   const {rAF, gpu, adapter, device, compat, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
   addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
@@ -480,8 +481,15 @@ async function checkWorkers(workerType) {
   addSupportsRow('OffscreenCanvas', offscreenSupported);
   addSupportsRow('CanvasRenderingContext2D', twoD);
 
-  addElemToDocument(el('table', { className: 'worker' }, [
+  return el('table', { className: 'worker' }, [
     el('tbody', {}, mapLikeToTableRows(obj, false)),
+  ]);
+}
+
+async function checkWorker(parent, workerType) {
+  parent.appendChild(el('div', {className: 'other'}, [
+    createHeading('h2', '=', `${workerType} workers:`),
+    await getWorkerInfo(workerType),
   ]));
 }
 
@@ -616,10 +624,14 @@ async function main() {
       createHeading('h2', '=', `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`),
       elem,
     ]))));
-  await checkMisc({haveFallback});
-  await checkWorkers('dedicated');
-  await checkWorkers('shared');
-  await checkWorkers('service');
+
+  const others = el('div', {className: 'others'})
+  addElemToDocument(others);
+  checkWGSLLanguageFeatures(others);
+  checkMisc(others, {haveFallback});
+  await checkWorker(others, 'dedicated');
+  await checkWorker(others, 'shared');
+  await checkWorker(others, 'service');
 
   // Add a copy handler to massage the text for plain text.
   document.addEventListener('copy', (event) => {

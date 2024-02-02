@@ -35,7 +35,8 @@
   --text-color: #006;
   --error-text-color: red;
 
-  --adapter-background-color: #CCC;
+  --section-header-background-color: #CCC;
+  --section-background-color: #DDD;
   --table-background-color: #EEE;
   --even-row-color: rgba(0, 0, 0, 0.05);
   --hover-color: rgba(0, 0, 0, 0.2);
@@ -52,7 +53,8 @@
     --text-color: #0F0;
     --error-text-color: #F66;
 
-    --adapter-background-color: #444;
+    --section-header-background-color: #444;
+    --section-background-color: #333;
     --table-background-color: #222;
     --even-row-color: rgba(255, 255, 255, 0.05);
     --hover-color: rgba(255, 255, 255, 0.2);
@@ -90,13 +92,16 @@ h1 {
   justify-content: flex-start;
 }
 h2 {
- margin: 0.5em 0 0.5em 0;
+ margin: 0;
 }
 h2, td {
   padding: 0 10px 0 10px;
 }
 .logo {
   height: 1.5em;
+}
+table.misc {
+  min-width: 100%;
 }
 .misc td:nth-child(2) {
   white-space: pre;
@@ -108,14 +113,21 @@ h2, td {
 #content {
   margin: 0 auto;
 }
-.adapters {
+.adapters,
+.others {
   display: inline-flex;
   flex-wrap: wrap;
 }
-.adapter {
-  background: var(--adapter-background-color);
+.adapter,
+.other {
+  background: var(--section-background-color);
   margin-right: 10px;
   margin-bottom: 10px;
+}
+.adapter h2,
+.other h2 {
+  padding: 0.5em 10px 0.5em 10px;
+  background: var(--section-header-background-color);
 }
 .name>td,
 .section>td {
@@ -178,11 +190,14 @@ look better, at copy/download time we make the text visible
     text-align: right;
   }
   .adapters,
+  .others,
   .adapter,
+  .other,
   table {
     width: 100%;
   }
-  .adapter {
+  .adapter,
+  .other {
     margin-right: 0;
   }
   tr {
