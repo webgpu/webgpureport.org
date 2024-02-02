@@ -444,10 +444,10 @@ async function checkWorkers(workerType) {
     ]));
     return;
   }
-  const {rAF, gpu, adapter, device, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
+  const {rAF, gpu, adapter, device, compat, context, offscreen: offscreenSupported, twoD } = await worker.getMessage('checkWebGPU', {canvas: offscreenCanvas}, [offscreenCanvas]);
   addSupportsRow('webgpu API', gpu, 'exists', 'n/a');
   if (gpu) {
-    addSupportsRow('requestAdapter', adapter);
+    addSupportsRow(`requestAdapter${compat ? '(compat)' : ''}`, adapter);
     if (adapter) {
       addSupportsRow('requestDevice', device);
       if (context) {

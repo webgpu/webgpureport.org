@@ -1,20 +1,34 @@
+async function createWebGPUDevice(adapterDesc, results) {
+  const adapter = await navigator.gpu.requestAdapter(adapterDesc);
+  if (adapter) {
+    results.adapter = true;
+    const device = await adapter.requestDevice();
+    if (device) {
+      results.device = true;
+      const {canvas} = data;
+      if (canvas) {
+        results.context = !!canvas.getContext('webgpu');
+      }
+    }
+  }
+}
+
 async function checkWebGPU(id, data) {
   const results = {}
   if (navigator.gpu) {
     results.gpu = true;
+  }
+
+  try {
+    createWebGPUDevice({}, results);
+  } catch (e) {
+    results.error = (e.message || e).toString();
+  }
+
+  if (!results.adapter) {
     try {
-      const adapter = await navigator.gpu.requestAdapter();
-      if (adapter) {
-        results.adapter = true;
-        const device = await adapter.requestDevice();
-        if (device) {
-          results.device = true;
-          const {canvas} = data;
-          if (canvas) {
-            results.context = !!canvas.getContext('webgpu');
-          }
-        }
-      }
+      createWebGPUDevice({compatibilityMode: true}, results);
+      results.compat = true;
     } catch (e) {
       results.error = (e.message || e).toString();
     }
