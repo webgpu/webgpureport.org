@@ -60,16 +60,17 @@ const handlers = {
 };
 
 function handleMessage(e) {
-  const {command, id, data} = e.data;
-  const handler = handlers[command];
-  if (!handler) {
-    throw new Error(`unknown command: ${command}`);
+  try {
+    const {command, id, data} = e.data;
+    const handler = handlers[command];
+    handler.call(this, id, data);
+  } catch(error) {
+    this.postMessage({data: 'messageerror'});
   }
-  handler.call(this, id, data);
 }
 
 self.onmessage = function(e) {
-  handleMessage.call(self, e);
+  handleMessage.call(e.source || self, e);
 };
 
 self.onconnect = function(e) {
@@ -81,3 +82,8 @@ self.onconnect = function(e) {
     port.postMessage({data: 'messageerror'});
   };
 };
+
+self.onmessageerror = (e) => {
+  const source = e.source || self;
+  source.postMessage({data: 'messageerror'});
+}

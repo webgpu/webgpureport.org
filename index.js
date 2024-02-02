@@ -329,15 +329,39 @@ class WorkerHelper {
     this._messagesByIdMap = new Map();
     this._pinged = false;
     this._bad = false;
-    this._worker = this._createWorker(url, workerType);
-    this._worker.addEventListener('error', (e) => {
+    this._readyPromise = this._createWorker(url, workerType);
+  }
+  async _createWorker(url, workerType) {
+    const workerUrl = `${url}?${workerType}`;
+    if (workerType === 'dedicated') {
+      this._worker = new Worker(workerUrl, {type: 'module'});
+      this._init(this._worker);
+      return Promise.resolve();
+    }
+    if (workerType === 'shared') {
+      const worker = new SharedWorker(workerUrl, {type: 'module'});
+      this._worker = worker.port;
+      this._init(this._worker);
+      return Promise.resolve();
+    }
+    if (workerType === 'service') {
+      const registration = await navigator.serviceWorker.register(workerUrl);
+      await navigator.serviceWorker.ready;
+      this._worker = registration.active;
+      this._init(navigator.serviceWorker);
+      return Promise.resolve();
+    }
+    return Promise.reject(`unknown worker type: ${workerType}`);
+  }
+  _init(worker) {
+    worker.addEventListener('error', (e) => {
       this._bad = true;
       // reject all existing promises
       this._promisesByIdMap.forEach(({reject}) => {
         reject();
       });
     });
-    this._worker.onmessage = (e) => {
+    worker.onmessage = (e) => {
       const {id, data} = e.data;
       if (data == "messageerror") {
         this._bad = true;
@@ -360,17 +384,6 @@ class WorkerHelper {
       }
     })();
   }
-  _createWorker(url, workerType) {
-    const workerUrl = `${url}?${workerType}`;
-    if (workerType === 'dedicated') {
-      return new Worker(workerUrl, {type: 'module'});
-    }
-    if (workerType === 'shared') {
-      const worker = new SharedWorker(workerUrl, {type: 'module'});
-      return worker.port;
-    }
-    throw new Error(`unknown worker type: ${workerType}`)
-  }
   _process(id) {
     const p = this._promisesByIdMap.get(id);
     if (this._bad) {
@@ -384,6 +397,9 @@ class WorkerHelper {
       this._promisesByIdMap.delete(id);
       p.resolve(data);
     }
+  }
+  ready() {
+    return this._readyPromise;
   }
   async getMessage(command, data = {}, transfer = []) {
     let resolve;
@@ -438,6 +454,7 @@ async function checkWorkers(workerType) {
   let worker;
   try {
     worker = new WorkerHelper('worker.js', workerType);
+    await worker.ready();
   } catch(error) {
     addElemToDocument(el('table', { className: 'worker' }, [
       el('tbody', {}, setLikeToTableRows(undefined)),
@@ -602,6 +619,7 @@ async function main() {
   await checkMisc({haveFallback});
   await checkWorkers('dedicated');
   await checkWorkers('shared');
+  await checkWorkers('service');
 
   // Add a copy handler to massage the text for plain text.
   document.addEventListener('copy', (event) => {
