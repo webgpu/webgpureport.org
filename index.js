@@ -619,14 +619,16 @@ async function main() {
       ));
   }
   window.a = adapterIds;
-  addElemToDocument(el('div', {className: 'adapters'},
+  const sectionsElem = el('div', {className: 'sections'},
     [...actualAdaptersIds].map(([id, {desc, elem}], ndx) => el('div', {className: 'adapter'}, [
       createHeading('h2', '=', `${adapterIds.size > 1 ? `#${ndx + 1} ` : ''}${(adapterIds.size > 1) ? `${desc}` : ''}`),
       elem,
-    ]))));
+    ])));
+  addElemToDocument(sectionsElem);
 
-  const others = el('div', {className: 'others'})
-  addElemToDocument(others);
+  const others = el('div', {className: 'others'});
+  //const outer = el('div', {className: 'outer'}, [others]);
+  sectionsElem.appendChild(others);
   checkWGSLLanguageFeatures(others);
   checkMisc(others, {haveFallback});
   await checkWorker(others, 'dedicated');

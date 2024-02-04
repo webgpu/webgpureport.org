@@ -113,10 +113,18 @@ table.misc {
 #content {
   margin: 0 auto;
 }
-.adapters,
-.others {
-  display: inline-flex;
+.sections {
+  display: flex;
   flex-wrap: wrap;
+  align-items: start;
+}
+.others {
+  flex: 1 1 auto;
+  display: inline-grid;
+  grid-auto-columns: min-content;
+}
+.other {
+  flex: 1 0 auto;
 }
 .adapter,
 .other {
@@ -189,8 +197,6 @@ look better, at copy/download time we make the text visible
   .worker>td:nth-child(2) {
     text-align: right;
   }
-  .adapters,
-  .others,
   .adapter,
   .other,
   table {
