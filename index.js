@@ -191,7 +191,9 @@ function expandSetLike(obj) {
 function mapLikeToKeyValueArray(obj) {
   const entries = [];
   for (const key in obj) {
-    entries.push([key, obj[key]]);
+    if (obj[key] !== null) {
+      entries.push([key, obj[key]]);
+    }
   }
   return entries;
 }
