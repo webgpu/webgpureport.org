@@ -298,7 +298,7 @@ async function adapterToElements(adapter) {
     return;
   }
   // UGH!
-  const adapterInfo = await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
+  const adapterInfo = adapter.info || await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
     el('td', {colSpan: 2}, [createHeading('div', '-', 'limits:')]),
