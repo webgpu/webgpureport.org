@@ -112,12 +112,16 @@ function separateTextContentFromAttributes(attrs = {}) {
  */
 function createHeading(tag, padChar, attrs = {}, children = []) {
   const {textContent, attribs} = separateTextContentFromAttributes(attrs);
-  return createElem(tag, attribs, [
+  const hidden = createHidden('');
+  const elem = createElem(tag, attribs, [
     createHidden('\n\n'),
     createElem('span', textContent),
-    createHidden(`\n${''.padEnd(textContent.length, padChar)}`),
     ...children,
+    hidden,
   ]);
+
+  hidden.textContent = `\n${''.padEnd(elem.textContent.length, padChar)}`;
+  return elem;
 }
 
 const el = createElem;
@@ -146,13 +150,6 @@ const shortSize = (function() {
   };
 })();
 
-const shortSizeMem = (function() {
-  const suffixes = ['b', 'k', 'mb', 'gb', 'tb', 'pb'];
-  return function(size) {
-    return shortSize(size, suffixes);
-  };
-})();
-
 const shortSizeByType = (function() {
   const suffixesByType = {
     'mem': ['b', 'k', 'mb', 'gb', 'tb', 'pb'],
@@ -164,11 +161,17 @@ const shortSizeByType = (function() {
   };
 })();
 
+/**
+ * Adds a row to table where first td is 'k'
+ */
 function addValueRow(className, k, _v) {
   const [v, attribs] = Array.isArray(_v) ? _v : [_v, {}];
   return el('tr', {className}, [
     el('td', {textContent: k}),
-    el('td', {...attribs, textContent: v}),
+    ...(v instanceof HTMLElement
+      ? [el('td', {}, _v)]
+      : [el('td', {...attribs, textContent: v})]
+    )
   ]);
 }
 
@@ -200,9 +203,8 @@ function mapLikeToKeyValueArray(obj) {
 
 function expandMapLike(obj, sort = true) {
   const entries = mapLikeToKeyValueArray(obj);
-  const longestDesc = entries.reduce((longest, [description]) => Math.max(longest, description.length), 0);  
   const result = entries
-    .map(([k, v]) => addValueRow('feature', k.padEnd(longestDesc + 1), v));
+    .map(([k, v]) => addValueRow('feature', k, v));
   if (sort) {
     result.sort(byFirstColumn);
   }
@@ -223,7 +225,7 @@ function mapLikeToTableRows(values, sort = true) {
 
 function makeBracketedLink(href, textContent, brackets = '()') {
   return [
-    createElem('span', {className: 'bracketed-link'}, [
+    createElem('span', {className: 'bracketed-link hide-on-copy'}, [
       createElem('span', `${brackets[0]} `),
       createElem('a', { target: '_blank', href, textContent }),
       createElem('span', ` ${brackets[1]}`),
@@ -258,15 +260,20 @@ function markDifferencesInLimits(adapter, device) {
         const diffClass = defaultLimit !== undefined
            ?  (isDiff
                  ? differenceWorse(k, defaultLimit, v) ? 'different-worse' : 'different-better'
-                : '')
+                : 'different-none')
            : 'unknown';
         const shortSize = shortSizeByType(v, info?.type ?? 'count');
+        const defaultSize = shortSizeByType(defaultLimit, info?.type ?? 'count');
         const value = v > 1024 ? `${v} (${shortSize})` : shortSize;
+        const defaultValue = defaultLimit > 1024 ? `${defaultLimit} (${defaultSize})` :  defaultSize;
+        const defaultElem = el('span', {className: 'nowrap default-limit', textContent: defaultValue})
+        const title = isDiff
+          ? `default: ${defaultSize}\n${requestHint}`
+          : 'same as default'
+        const limitElem = el('span', {textContent: value, className: `${diffClass} nowrap adapter-limit`, title});
         return [
           k,
-          isDiff
-            ? [value, {className: `${diffClass} nowrap`, title: `default: ${shortSize}`}]
-            : [value, {className: 'nowrap', title: 'same as default'}]
+          [defaultElem, limitElem],
         ];
       })
   );
@@ -302,6 +309,9 @@ function parseAdapterFlags(adapter) {
   return flags;
 }
 
+const requestLink = 'https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html';
+const requestHint = 'limits greater than default must be specified when requesting adapter';
+
 async function adapterToElements(adapter) {
   if (!adapter) {
     return;
@@ -311,15 +321,28 @@ async function adapterToElements(adapter) {
   const device = await adapter.requestDevice() || {}
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
-    el('td', {colSpan: 2}, [
+    el('td', {}, [
       createHeading('div', '-', {}, [
-        createElem('span', {textContent: 'limits: '}),
-        ...makeBracketedLink('https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html', 'must be requested'),
+        createElem('span', {textContent: 'limits: ', title: requestHint}),
+        ...makeBracketedLink(requestLink, 'must be requested'),
       ]),
+    ]),
+    el('td', {}, [
+      el(
+        'label',
+        {
+          className: 'nowrap hide-on-copy',
+          textContent: 'show defaults',
+          onInput: function() {
+            this.closest('table').classList.toggle('show-default-limits', this.checked);
+          },
+        }, [
+          el('input', {type: 'checkbox'}),
+        ]),
     ]),
   ]);
 
-  return el('table', {}, [
+  return el('table', {className: 'show-adapter-limits'}, [
     el('tbody', {}, [
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'adapter info:')]),
@@ -330,12 +353,14 @@ async function adapterToElements(adapter) {
       ]),
       ...mapLikeToTableRows(parseAdapterFlags(adapter)),
       limitsSectionElem,
-      ...mapLikeToTableRows(markDifferencesInLimits(adapter, device), true),
+      ...mapLikeToTableRows({
+        ...markDifferencesInLimits(adapter, device),
+      }, true),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [
           createHeading('div', '-', {}, [
             createElem('span', {textContent: 'features: '}),
-            ...makeBracketedLink('https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html', 'must be requested'),
+            ...makeBracketedLink(requestLink, 'must be requested'),
           ]),
         ]),
       ]),
@@ -529,6 +554,7 @@ function getSelectionText(all) {
     const dynamicStyle = document.querySelector('#dynamic-style');
     dynamicStyle.textContent = `
       body { white-space: pre !important; }
+      .nowrap { white-space: pre !important; }
       .copy { display: initial; }
       .hide-on-copy { display: none !important; }
     `;
@@ -586,7 +612,72 @@ function getSelectionText(all) {
 
     dynamicStyle.textContent = '';
     return text;
+}
+
+function formatSectionForCopyPasteSave({head, rows}) {
+  // Get the width of each column
+  const longest = [];
+  for (const row of rows) {
+    for (let c = 0; c < row.cells.length; ++c) {
+      longest[c] = Math.max(longest[c] ?? 0, row.cells[c].textContent.length);
+    }
   }
+
+  // check the first row to see if this is a 2 column section. If so,
+  // add space for a ':'
+  if (rows.length) {
+    const lastNonEmptyColumn = [...rows[0].cells].findLastIndex(e => e.textContent.trim().length > 0);
+    if (lastNonEmptyColumn >= 1) {
+      ++longest[0];
+    }
+  }
+
+  // padEnd all except the last column unless there is nothing in trailing columns
+  for (const row of rows) {
+    const lastNonEmptyColumn = [...row.cells].findLastIndex(e => e.textContent.trim().length > 0);
+
+    if (lastNonEmptyColumn >= 1) {
+      row.cells[0].append(createHidden(':'));
+    }
+
+    for (let c = 0; c < lastNonEmptyColumn; ++c) {
+      const cell = row.cells[c];
+      cell.appendChild(createHidden(''.padEnd(longest[c] - cell.textContent.length)));
+    }
+
+    if (lastNonEmptyColumn >= 0) {
+      row.cells[0].prepend(createHidden('* '));
+    }
+  }
+}
+
+function formatTableForCopyPasteSave(table) {
+  const sections = [];
+  let section = {
+    rows: [],
+  };
+
+  const addSection = () => {
+    if (section) {
+      sections.push(section);
+    }
+  };
+ 
+  for (const row of table.rows) {
+    if (row.classList.contains('section')) {
+      addSection();
+      section = {
+        head: row,
+        rows: [],
+      };
+    } else {
+      section.rows.push(row);
+    }
+  }
+  addSection();
+
+  sections.forEach(formatSectionForCopyPasteSave);
+}
 
 async function main() {
   if (!navigator.gpu?.requestAdapter) { 
@@ -664,11 +755,18 @@ async function main() {
   });
 
   document.querySelector('#download').addEventListener('click', () => {
+    const showDefaults = [...document.querySelectorAll('table.show-default-limits')];
+    showDefaults.forEach(e => e.classList.remove('show-default-limits'));
+
     const text = getSelectionText(true);
     const blob = new Blob([text], {type: 'text/text'});
     const filename = `webgpureport-${new Date().toISOString().replace(/[^a-z0-9-]/ig, '-')}.txt`;
     saveData(blob, filename);
-  });  
+
+    showDefaults.forEach(e => e.classList.add('show-default-limits'));
+  });
+
+  document.querySelectorAll('table').forEach(formatTableForCopyPasteSave);
 }
 
 main();
