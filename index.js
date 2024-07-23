@@ -14,46 +14,46 @@ export const kMaxUnsignedLongValue = 4294967295;
 export const kMaxUnsignedLongLongValue = Number.MAX_SAFE_INTEGER;
 
 /** Info for each entry of GPUSupportedLimits */
-const kLimitInfo = /* prettier-ignore */ makeTable(
-                                               [    'class','type'    , 'default', 'compat' ,            'maximumValue'],
-                                               [  'maximum',          ,          ,          ,     kMaxUnsignedLongValue], {
-  'maxTextureDimension1D':                     [           , 'size'   ,      8192,      4096,                          ],
-  'maxTextureDimension2D':                     [           , 'size'   ,      8192,      4096,                          ],
-  'maxTextureDimension3D':                     [           , 'size'   ,      2048,      1024,                          ],
-  'maxTextureArrayLayers':                     [           , 'size'   ,       256,       256,                          ],
+const kLimitInfo = makeTable(
+                                               [    'class','type'    ,            'maximumValue'],
+                                               [  'maximum',          ,     kMaxUnsignedLongValue], {
+  'maxTextureDimension1D':                     [           , 'size'   ,                          ],
+  'maxTextureDimension2D':                     [           , 'size'   ,                          ],
+  'maxTextureDimension3D':                     [           , 'size'   ,                          ],
+  'maxTextureArrayLayers':                     [           , 'count'  ,                          ],
 
-  'maxBindGroups':                             [           , 'count'  ,         4,         4,                          ],
-  'maxBindGroupsPlusVertexBuffers':            [           , 'count'  ,        24,        24,                          ],
-  'maxBindingsPerBindGroup':                   [           , 'count'  ,      1000,      1000,                          ],
-  'maxDynamicUniformBuffersPerPipelineLayout': [           , 'count'  ,         8,         8,                          ],
-  'maxDynamicStorageBuffersPerPipelineLayout': [           , 'count'  ,         4,         4,                          ],
-  'maxSampledTexturesPerShaderStage':          [           , 'count'  ,        16,        16,                          ],
-  'maxSamplersPerShaderStage':                 [           , 'count'  ,        16,        16,                          ],
-  'maxStorageBuffersPerShaderStage':           [           , 'count'  ,         8,         4,                          ],
-  'maxStorageTexturesPerShaderStage':          [           , 'count'  ,         4,         4,                          ],
-  'maxUniformBuffersPerShaderStage':           [           , 'count'  ,        12,        12,                          ],
+  'maxBindGroups':                             [           , 'count'  ,                          ],
+  'maxBindGroupsPlusVertexBuffers':            [           , 'count'  ,                          ],
+  'maxBindingsPerBindGroup':                   [           , 'count'  ,                          ],
+  'maxDynamicUniformBuffersPerPipelineLayout': [           , 'count'  ,                          ],
+  'maxDynamicStorageBuffersPerPipelineLayout': [           , 'count'  ,                          ],
+  'maxSampledTexturesPerShaderStage':          [           , 'count'  ,                          ],
+  'maxSamplersPerShaderStage':                 [           , 'count'  ,                          ],
+  'maxStorageBuffersPerShaderStage':           [           , 'count'  ,                          ],
+  'maxStorageTexturesPerShaderStage':          [           , 'count'  ,                          ],
+  'maxUniformBuffersPerShaderStage':           [           , 'count'  ,                          ],
 
-  'maxUniformBufferBindingSize':               [           , 'mem'    ,     65536,     16384, kMaxUnsignedLongLongValue],
-  'maxStorageBufferBindingSize':               [           , 'mem'    , 134217728, 134217728, kMaxUnsignedLongLongValue],
-  'minUniformBufferOffsetAlignment':           ['alignment', 'mem'    ,       256,       256,                          ],
-  'minStorageBufferOffsetAlignment':           ['alignment', 'mem'    ,       256,       256,                          ],
+  'maxUniformBufferBindingSize':               [           , 'mem'    , kMaxUnsignedLongLongValue],
+  'maxStorageBufferBindingSize':               [           , 'mem'    , kMaxUnsignedLongLongValue],
+  'minUniformBufferOffsetAlignment':           ['alignment', 'mem'    ,                          ],
+  'minStorageBufferOffsetAlignment':           ['alignment', 'mem'    ,                          ],
 
-  'maxVertexBuffers':                          [           , 'count'  ,         8,         8,                          ],
-  'maxBufferSize':                             [           , 'mem'    , 268435456, 268435456, kMaxUnsignedLongLongValue],
-  'maxVertexAttributes':                       [           , 'count'  ,        16,        16,                          ],
-  'maxVertexBufferArrayStride':                [           , 'mem'    ,      2048,      2048,                          ],
-  'maxInterStageShaderComponents':             [           , 'count'  ,        60,        60,                          ],
-  'maxInterStageShaderVariables':              [           , 'count'  ,        16,        16,                          ],
+  'maxVertexBuffers':                          [           , 'count'  ,                          ],
+  'maxBufferSize':                             [           , 'mem'    , kMaxUnsignedLongLongValue],
+  'maxVertexAttributes':                       [           , 'count'  ,                          ],
+  'maxVertexBufferArrayStride':                [           , 'mem'    ,                          ],
+  'maxInterStageShaderComponents':             [           , 'count'  ,                          ],
+  'maxInterStageShaderVariables':              [           , 'count'  ,                          ],
 
-  'maxColorAttachments':                       [           , 'count'  ,         8,         4,                          ],
-  'maxColorAttachmentBytesPerSample':          [           , 'mem'    ,        32,        32,                          ],
+  'maxColorAttachments':                       [           , 'count'  ,                          ],
+  'maxColorAttachmentBytesPerSample':          [           , 'mem'    ,                          ],
 
-  'maxComputeWorkgroupStorageSize':            [           , 'mem'    ,     16384,     16384,                          ],
-  'maxComputeInvocationsPerWorkgroup':         [           , 'count'  ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeX':                  [           , 'size'   ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeY':                  [           , 'size'   ,       256,       128,                          ],
-  'maxComputeWorkgroupSizeZ':                  [           , 'size'   ,        64,        64,                          ],
-  'maxComputeWorkgroupsPerDimension':          [           , 'mem'    ,     65535,     65535,                          ],
+  'maxComputeWorkgroupStorageSize':            [           , 'mem'    ,                          ],
+  'maxComputeInvocationsPerWorkgroup':         [           , 'count'  ,                          ],
+  'maxComputeWorkgroupSizeX':                  [           , 'size'   ,                          ],
+  'maxComputeWorkgroupSizeY':                  [           , 'size'   ,                          ],
+  'maxComputeWorkgroupSizeZ':                  [           , 'size'   ,                          ],
+  'maxComputeWorkgroupsPerDimension':          [           , 'size'   ,                          ],
 });
 
 function createElem(tag, attrs = {}, children = []) { 
@@ -221,43 +221,52 @@ function mapLikeToTableRows(values, sort = true) {
     : [el('tr', {}, [el('td', {colSpan: 2, textContent: 'not yet implemented by this browser'})])];
 }
 
+function makeBracketedLink(href, textContent, brackets = '()') {
+  return [
+    createElem('span', {className: 'bracketed-link'}, [
+      createElem('span', `${brackets[0]} `),
+      createElem('a', { target: '_blank', href, textContent }),
+      createElem('span', ` ${brackets[1]}`),
+    ]),
+  ];
+}
+
 function log(...args) {
   const elem = document.createElement('pre');
   elem.textContent = args.join(' ');
   addElemToDocument(elem);
 }
 
-function differenceWorse(info, v) {
-  switch (info.class) {
-    case 'alignment':
-      return v > info.default;
-    case 'maximum':
-      return v < info.default;
-    default:
-      throw new Error(`unknown className: ${info.class}`)
+function differenceWorse(name, defaultLimit, v) {
+  if (name.startsWith('min')) {
+    return v > defaultLimit;
+  } else if (name.startsWith('max')) {
+    return v < defaultLimit;
+  } else {
+    throw new Error(`unknown limit type: ${name}`)
   }
 }
 
-function markDifferencesInLimits(adapter) {
+function markDifferencesInLimits(adapter, device) {
+  const defaultLimits = device?.limits ?? {};
   return Object.fromEntries(
     mapLikeToKeyValueArray(adapter.limits)
       .map(([k, v]) => {
+        const defaultLimit = defaultLimits[k];
         const info = kLimitInfo[k];
-        const isDiff = info && info.default !== v;
-        const diffClass = info
+        const isDiff = defaultLimit !== undefined && defaultLimit !== v;
+        const diffClass = defaultLimit !== undefined
            ?  (isDiff
-                 ? differenceWorse(info, v) ? 'different-worse' : 'different-better'
+                 ? differenceWorse(k, defaultLimit, v) ? 'different-worse' : 'different-better'
                 : '')
            : 'unknown';
-        const value = v > 1024 && info ? `${v} (${shortSizeByType(v, info.type)})` : v;
+        const shortSize = shortSizeByType(v, info?.type ?? 'count');
+        const value = v > 1024 ? `${v} (${shortSize})` : shortSize;
         return [
           k,
           isDiff
-            ? [value, {className: `${diffClass} nowrap`, title: `default${adapter.isCompatibilityMode ? ' in compat' : ''}: ${shortSizeByType(adapter.isCompatibilityMode ? info.compat : info.default, info.type)}`}]
-            : info
-               ? [value, {className: 'nowrap', title: 'same as default'}]
-               : [value, {className: 'unknown nowrap', title: 'unknown limit (new?)'}]
-
+            ? [value, {className: `${diffClass} nowrap`, title: `default: ${shortSize}`}]
+            : [value, {className: 'nowrap', title: 'same as default'}]
         ];
       })
   );
@@ -299,9 +308,15 @@ async function adapterToElements(adapter) {
   }
   // UGH!
   const adapterInfo = adapter.info || await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
+  const device = await adapter.requestDevice() || {}
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
-    el('td', {colSpan: 2}, [createHeading('div', '-', 'limits:')]),
+    el('td', {colSpan: 2}, [
+      createHeading('div', '-', {}, [
+        createElem('span', {textContent: 'limits: '}),
+        ...makeBracketedLink('https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html', 'must be requested'),
+      ]),
+    ]),
   ]);
 
   return el('table', {}, [
@@ -315,9 +330,14 @@ async function adapterToElements(adapter) {
       ]),
       ...mapLikeToTableRows(parseAdapterFlags(adapter)),
       limitsSectionElem,
-      ...mapLikeToTableRows(markDifferencesInLimits(adapter)),
+      ...mapLikeToTableRows(markDifferencesInLimits(adapter, device), true),
       el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2}, [createHeading('div', '-', 'features:')]),
+        el('td', {colSpan: 2}, [
+          createHeading('div', '-', {}, [
+            createElem('span', {textContent: 'features: '}),
+            ...makeBracketedLink('https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html', 'must be requested'),
+          ]),
+        ]),
       ]),
       ...setLikeToTableRows(adapter.features),
     ]),
@@ -605,7 +625,6 @@ async function main() {
   }
 
   const haveFallback = [...adapterIds].findIndex(([, desc]) => desc.fallback) >= 0;
-  const numUniqueGPUs = adapterIds.size - (haveFallback ? 1 : 0)
 
   const actualAdaptersIds = [...adapterIds].filter(([, {elem}]) => !!elem);
   if (actualAdaptersIds.length === 0) {
