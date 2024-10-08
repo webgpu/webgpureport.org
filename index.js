@@ -472,12 +472,24 @@ function checkWGSLLanguageFeatures(parent) {
   ]));
 }
 
-function checkMisc(parent, {haveFallback}) {
+async function checkMisc(parent, {haveFallback}) {
   const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   obj.getPreferredCanvasFormat = presentationFormat;
   if (!haveFallback) {
     obj['fallback adapter'] = 'not supported';
+  }
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgpu');
+    context.configure({device, format: presentationFormat, toneMapping: {mode: 'extended'}});
+    const config = context.getConfiguration();
+    obj['HDR canvas support'] = config.toneMapping.mode === 'extended' ? 'supported' : 'not supported';
+  }
+  catch(error) {
+    obj['HDR canvas support'] = 'not supported';
   }
 
   parent.appendChild(el('div', {className: 'other'}, [
@@ -740,7 +752,7 @@ async function main() {
   //const outer = el('div', {className: 'outer'}, [others]);
   sectionsElem.appendChild(others);
   checkWGSLLanguageFeatures(others);
-  checkMisc(others, {haveFallback});
+  await checkMisc(others, {haveFallback});
   await checkWorker(others, 'dedicated');
   await checkWorker(others, 'shared');
   await checkWorker(others, 'service');
