@@ -316,8 +316,6 @@ async function adapterToElements(adapter) {
   if (!adapter) {
     return;
   }
-  // UGH!
-  const adapterInfo = adapter.info || await (adapter.requestAdapterInfo ? adapter.requestAdapterInfo() : undefined);
   const device = await adapter.requestDevice() || {}
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
@@ -347,7 +345,7 @@ async function adapterToElements(adapter) {
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'adapter info:')]),
       ]),
-      ...mapLikeToTableRows(parseAdapterInfo(adapterInfo)),
+      ...mapLikeToTableRows(parseAdapterInfo(adapter.info)),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
       ]),
