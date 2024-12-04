@@ -479,6 +479,22 @@ async function checkMisc(parent, {haveFallback}) {
   if (!haveFallback) {
     obj['fallback adapter'] = 'not supported';
   }
+
+  let xrCompatibleAccessed = false;
+  const xrAdapterOptions = {
+    get xrCompatible() {
+      xrCompatibleAccessed = true;
+      return true;
+    }
+  };
+  try {
+    const adapter = await navigator.gpu.requestAdapter(xrAdapterOptions);
+    obj['WebXR support'] = (adapter && xrCompatibleAccessed) ? 'supported' : 'not supported';
+  }
+  catch(error) {
+    obj['WebXR support'] = 'unknown';
+  }
+
   try {
     const adapter = await navigator.gpu.requestAdapter();
     const device = await adapter.requestDevice();
@@ -700,6 +716,7 @@ async function main() {
     { powerPreference: "low-power", },
     { powerPreference: "low-power", forceFallbackAdapter: true, },
     { compatibilityMode: true, featureLevel: "compatibility" },
+    { xrCompatible: true },
   ];
 
   const adapterIds = new Map();
