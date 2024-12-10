@@ -699,7 +699,7 @@ async function main() {
     { powerPreference: "high-performance" },
     { powerPreference: "low-power", },
     { powerPreference: "low-power", forceFallbackAdapter: true, },
-    { compatibilityMode: true },
+    { compatibilityMode: true, featureLevel: "compatibility" },
   ];
 
   const adapterIds = new Map();
