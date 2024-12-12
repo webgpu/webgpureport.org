@@ -472,6 +472,43 @@ function checkWGSLLanguageFeatures(parent) {
   ]));
 }
 
+async function checkWebXRSupport() {
+  // If XRGPUBinding is not available, WebXR is not supported.
+  if (!('XRGPUBinding' in window)) {
+    return 'not supported';
+  }
+
+  try {
+    // Check if immersive VR or AR sessions are supported.
+    const [isImmersiveVrSupported, isImmersiveArSupported] = await Promise.all([
+      navigator.xr?.isSessionSupported('immersive-vr'),
+      navigator.xr?.isSessionSupported('immersive-ar'),
+    ]);
+
+    // If no immersive sessions are supported, WebXR is not supported.
+    if (!(isImmersiveVrSupported || isImmersiveArSupported)) {
+      return 'not supported';
+    }
+
+    let xrCompatibleAccessed = false;
+    const xrAdapterOptions = {
+      get xrCompatible() {
+        xrCompatibleAccessed = true;
+        return true;
+      }
+    };
+
+    // Otherwise, request an adapter with XR compatible options.
+    const adapter = await navigator.gpu.requestAdapter(xrAdapterOptions);
+
+    // If an adapter is found and it's XR compatible, WebXR is supported.
+    return adapter && xrCompatibleAccessed ? 'likely supported' : 'not supported';
+  } catch (error) {
+    // If an error occurs during adapter request, WebXR support is unknown.
+    return 'unknown';
+  }
+}
+
 async function checkMisc(parent, {haveFallback}) {
   const obj = {};
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
@@ -480,20 +517,7 @@ async function checkMisc(parent, {haveFallback}) {
     obj['fallback adapter'] = 'not supported';
   }
 
-  let xrCompatibleAccessed = false;
-  const xrAdapterOptions = {
-    get xrCompatible() {
-      xrCompatibleAccessed = true;
-      return true;
-    }
-  };
-  try {
-    const adapter = await navigator.gpu.requestAdapter(xrAdapterOptions);
-    obj['WebXR support'] = (adapter && xrCompatibleAccessed) ? 'supported' : 'not supported';
-  }
-  catch(error) {
-    obj['WebXR support'] = 'unknown';
-  }
+  obj['WebXR support'] = await checkWebXRSupport();
 
   try {
     const adapter = await navigator.gpu.requestAdapter();
