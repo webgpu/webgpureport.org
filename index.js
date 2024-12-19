@@ -303,8 +303,11 @@ function parseAdapterFlags(adapter) {
   const flags = {
     'isFallbackAdapter': adapter.isFallbackAdapter,
   };
+  if ('featureLevel' in adapter) {
+    flags.featureLevel = adapter.featureLevel;
+  }
   if ('isCompatibilityMode' in adapter) {
-    flags.isCompatibilityMode = adapter.isCompatibilityMode
+    flags.isCompatibilityMode = adapter.isCompatibilityMode;
   }
   return flags;
 }
@@ -593,7 +596,9 @@ async function checkWorker(parent, workerType) {
 function adapterOptionsToDesc(requestAdapterOptions, adapter) {
   const parts = [
     ...(adapter?.isFallbackAdapter ? ['fallback'] : []),
-    ...(adapter?.isCompatibilityMode ? ['compatibilityMode'] : []),
+    ...(adapter?.featureLevel == 'compatibility' || adapter?.isCompatibilityMode
+      ? ['compatibilityMode']
+      : []),
   ];
   return parts.length > 0
     ? parts.join(' ')
