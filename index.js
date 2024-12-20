@@ -255,18 +255,25 @@ function markDifferencesInLimits(adapter, device) {
     mapLikeToKeyValueArray(adapter.limits)
       .map(([k, v]) => {
         const defaultLimit = defaultLimits[k];
+        const defaultClass = defaultLimit > 0
+          ? 'nowrap default-limit'
+          : 'nowrap default-limit default-zero';
         const info = kLimitInfo[k];
         const isDiff = defaultLimit !== undefined && defaultLimit !== v;
-        const diffClass = defaultLimit !== undefined
-           ?  (isDiff
-                 ? differenceWorse(k, defaultLimit, v) ? 'different-worse' : 'different-better'
-                : 'different-none')
-           : 'unknown';
+        const diffClass = defaultLimit === undefined
+           ?  'unknown'
+           :  (isDiff
+                ? differenceWorse(k, defaultLimit, v) ? 'different-worse' : 'different-better'
+                :  (v === 0
+                      ? 'different-zero'
+                      : 'different-none'
+                   )
+              );
         const shortSize = shortSizeByType(v, info?.type ?? 'count');
         const defaultSize = shortSizeByType(defaultLimit, info?.type ?? 'count');
         const value = v > 1024 ? `${v} (${shortSize})` : shortSize;
         const defaultValue = defaultLimit > 1024 ? `${defaultLimit} (${defaultSize})` :  defaultSize;
-        const defaultElem = el('span', {className: 'nowrap default-limit', textContent: defaultValue})
+        const defaultElem = el('span', {className: defaultClass, textContent: defaultValue})
         const title = isDiff
           ? `default: ${defaultSize}\n${requestHint}`
           : 'same as default'
