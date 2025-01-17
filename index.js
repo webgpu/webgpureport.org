@@ -355,7 +355,15 @@ async function adapterToElements(adapter) {
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'adapter info:')]),
       ]),
-      ...mapLikeToTableRows(parseAdapterInfo(adapter.info)),
+      el('tr', {}, [
+        el('td', {className: 'sub-table', colSpan: 2}, [
+          el('table', {className: 'sub-table'}, [
+            el('tbody', {}, [
+              ...mapLikeToTableRows(parseAdapterInfo(adapter.info)),
+            ]),
+          ]),
+        ]),
+      ]),
       el('tr', {className: 'section'}, [
         el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
       ]),
@@ -708,7 +716,9 @@ function formatSectionForCopyPasteSave({head, rows}) {
     }
 
     if (lastNonEmptyColumn >= 0) {
-      row.cells[0].prepend(createHidden('* '));
+      if (!(row.cells[0].children[0] instanceof HTMLTableElement)) {
+        row.cells[0].prepend(createHidden('* '));
+      }
     }
   }
 }
