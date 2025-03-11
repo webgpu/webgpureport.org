@@ -322,11 +322,11 @@ function parseAdapterFlags(adapter) {
 const requestLink = 'https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html';
 const requestHint = 'limits greater than default must be specified when requesting adapter';
 
-async function adapterToElements(adapter) {
+async function adapterToElements(adapter, device) {
   if (!adapter) {
     return;
   }
-  const device = await adapter.requestDevice() || {}
+  device = device ?? {};
 
   const limitsSectionElem = el('tr', {className: 'section'}, [
     el('td', {}, [
@@ -608,10 +608,10 @@ async function checkWorker(parent, workerType) {
   ]));
 }
 
-function adapterOptionsToDesc(requestAdapterOptions, adapter) {
+function adapterOptionsToDesc(requestAdapterOptions, adapter, device) {
   const parts = [
     ...(adapter?.isFallbackAdapter ? ['fallback'] : []),
-    ...(adapter?.featureLevel == 'compatibility' || adapter?.isCompatibilityMode
+    ...(!device?.features.has('core-features-and-limits')
       ? ['compatibilityMode']
       : []),
   ];
@@ -769,14 +769,15 @@ async function main() {
   for (const requestAdapterOptions of requestAdapterOptionsSets) {
     try {
       const adapter = await navigator.gpu.requestAdapter(requestAdapterOptions);
+      const device = await adapter?.requestDevice();
       // The id is the the actual adaptor limits as a string.
       // Effectively if the limits are the same then it's *probably* the 
       // same adaptor.
-      const elem = await adapterToElements(adapter);
+      const elem = await adapterToElements(adapter, device);
       const id = elem?.innerHTML;
       if (!adapterIds.has(id)) {
         adapterIds.set(id, {
-          desc: adapterOptionsToDesc(requestAdapterOptions, adapter),
+          desc: adapterOptionsToDesc(requestAdapterOptions, adapter, device),
           fallback: adapter?.isFallbackAdapter,
           elem,
         });
