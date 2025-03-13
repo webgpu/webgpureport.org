@@ -313,9 +313,6 @@ function parseAdapterFlags(adapter) {
   if ('featureLevel' in adapter) {
     flags.featureLevel = adapter.featureLevel;
   }
-  if ('isCompatibilityMode' in adapter) {
-    flags.isCompatibilityMode = adapter.isCompatibilityMode;
-  }
   return flags;
 }
 
@@ -611,7 +608,7 @@ async function checkWorker(parent, workerType) {
 function adapterOptionsToDesc(requestAdapterOptions, adapter, device) {
   const parts = [
     ...(adapter?.isFallbackAdapter ? ['fallback'] : []),
-    ...(!device?.features.has('core-features-and-limits')
+    ...(!device?.features.has('core-features-and-limits') && device.limits.maxStorageBuffersInVertexStage === 0
       ? ['compatibilityMode']
       : []),
   ];
