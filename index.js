@@ -310,9 +310,6 @@ function parseAdapterFlags(adapter) {
   const flags = {
     'isFallbackAdapter': adapter.isFallbackAdapter,
   };
-  if ('featureLevel' in adapter) {
-    flags.featureLevel = adapter.featureLevel;
-  }
   return flags;
 }
 
@@ -758,7 +755,7 @@ async function main() {
     { powerPreference: "high-performance" },
     { powerPreference: "low-power", },
     { powerPreference: "low-power", forceFallbackAdapter: true, },
-    { compatibilityMode: true, featureLevel: "compatibility" },
+    { featureLevel: "compatibility" },
     { xrCompatible: true },
   ];
 
