@@ -745,9 +745,18 @@ function formatTableForCopyPasteSave(table) {
   sections.forEach(formatSectionForCopyPasteSave);
 }
 
+function showImplementationStatus() {
+  log("It's possible it may be enabled via flags.");
+  addElemToDocument(el('a', {
+    href: 'https://github.com/gpuweb/gpuweb/wiki/Implementation-Status#implementation-status',
+    textContent: 'See this link for more info',
+  }));
+}
+
 async function main() {
-  if (!navigator.gpu?.requestAdapter) { 
-    log('  webgpu not available on this browser');
+  if (!navigator.gpu?.requestAdapter) {
+    log('webgpu is not available on this browser');
+    showImplementationStatus();
     return;
   }
 
@@ -797,6 +806,7 @@ async function main() {
             : `webgpu appears to not be supported`,
           },
       ));
+      showImplementationStatus();
   }
   window.a = adapterIds;
   const sectionsElem = el('div', {className: 'sections'},
