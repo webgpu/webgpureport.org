@@ -306,13 +306,6 @@ function parseAdapterInfo(adapterInfo) {
   );
 }
 
-function parseAdapterFlags(adapter) {
-  const flags = {
-    'isFallbackAdapter': adapter.isFallbackAdapter,
-  };
-  return flags;
-}
-
 const requestLink = 'https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html';
 const requestHint = 'limits greater than default must be specified when requesting adapter';
 
@@ -358,10 +351,6 @@ async function adapterToElements(adapter, device) {
           ]),
         ]),
       ]),
-      el('tr', {className: 'section'}, [
-        el('td', {colSpan: 2}, [createHeading('div', '-', 'flags:')]),
-      ]),
-      ...mapLikeToTableRows(parseAdapterFlags(adapter)),
       limitsSectionElem,
       ...mapLikeToTableRows({
         ...markDifferencesInLimits(adapter, device),
@@ -604,7 +593,7 @@ async function checkWorker(parent, workerType) {
 
 function adapterOptionsToDesc(requestAdapterOptions, adapter, device) {
   const parts = [
-    ...(adapter?.isFallbackAdapter ? ['fallback'] : []),
+    ...(adapter?.info.isFallbackAdapter ? ['fallback'] : []),
     ...(!device?.features.has('core-features-and-limits') && device.limits.maxStorageBuffersInVertexStage === 0
       ? ['compatibilityMode']
       : []),
@@ -781,7 +770,7 @@ async function main() {
       if (!adapterIds.has(id)) {
         adapterIds.set(id, {
           desc: adapterOptionsToDesc(requestAdapterOptions, adapter, device),
-          fallback: adapter?.isFallbackAdapter,
+          fallback: adapter?.info.isFallbackAdapter,
           elem,
         });
       }
