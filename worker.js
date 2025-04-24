@@ -28,9 +28,7 @@ async function checkWebGPU(id, data) {
   if (!results.adapter) {
     try {
       await createWebGPUDevice(data, {featureLevel: 'compatibility'}, results);
-      results.compat =
-        results.device?.features.has('core-features-and-limits') &&
-        results.device.limits.maxStorageBuffersInVertexStage === 0;
+      results.compat = true;
       delete results.error;
     } catch (e) {
       results.error = (e.message || e).toString();
