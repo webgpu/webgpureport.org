@@ -289,20 +289,28 @@ function markDifferencesInLimits(adapter, device) {
 function parseAdapterInfo(adapterInfo) {
   return Object.fromEntries(
     mapLikeToKeyValueArray(adapterInfo).map(([k, v]) => {
-      if (k !== "memoryHeaps") {
-        return [k, v];
-      }
-      const value = adapterInfo.memoryHeaps.map(({ size, properties }) => {
-        const heapProperties = [];
-        for (const [k, v] of Object.entries(GPUHeapProperty)) {
-          if ((parseInt(properties, 10) & v) !== 0) {
-            heapProperties.push(k);
+      if (k === 'memoryHeaps') {
+        const value = adapterInfo.memoryHeaps.map(({ size, properties }) => {
+          const heapProperties = [];
+          for (const [k, v] of Object.entries(GPUHeapProperty)) {
+            if ((parseInt(properties, 10) & v) !== 0) {
+              heapProperties.push(k);
+            }
           }
-        }
-        return `[ size: ${size}, properties: ${heapProperties.join(" | ")} ]`;
-      });
-      return [k, [value.join(", ")]];
-    }),
+          return `[ size: ${size}, properties: ${heapProperties.join(' | ')} ]`;
+        });
+        return [k, [value.join(', ')]];
+      }
+      if (k === 'subgroupMatrixConfigs') {
+        const value = adapterInfo.subgroupMatrixConfigs.map(
+          ({ componentType, resultComponentType, K, M, N }) => {
+            return `[ componentType: '${componentType}', resultComponentType: '${resultComponentType}', M: ${M}, N: ${N}, K: ${K} ]`;
+          }
+        );
+        return [k, [value.join(', ')]];
+      }
+      return [k, v];
+    })
   );
 }
 
