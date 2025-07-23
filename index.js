@@ -141,14 +141,12 @@ const saveData = (function() {
   };
 }());
 
-const shortSize = (function() {
-  return function(size, suffixes = ['', 'k', 'm', 'g', 't', 'p']) {
-    const suffixNdx = Math.log2(Math.abs(size)) / 10 | 0;
-    const suffix = suffixes[Math.min(suffixNdx, suffixes.length - 1)];
-    const base = 2 ** (suffixNdx * 10);
-    return `${(size / base).toFixed(0)}${suffix}`;
-  };
-})();
+function shortSize(size, suffixes = ['', 'k', 'm', 'g', 't', 'p']) {
+  const suffixNdx = Math.log2(Math.abs(size)) / 10 | 0;
+  const suffix = suffixes[Math.min(suffixNdx, suffixes.length - 1)];
+  const base = 2 ** (suffixNdx * 10);
+  return `${(size / base).toFixed(0)}${suffix}`;
+}
 
 const shortSizeByType = (function() {
   const suffixesByType = {
