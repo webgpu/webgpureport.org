@@ -315,6 +315,22 @@ function parseAdapterInfo(adapterInfo) {
 const requestLink = 'https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html';
 const requestHint = 'limits greater than default must be specified when requesting adapter';
 
+function adapterWarnings() {
+  const rows = [];
+
+  const addRow = (msg) => {
+    if (rows.length === 0) {
+      rows.push(el('tr', { className: 'warn' }, [el('td', {colSpan: 2, textContent: 'warnings:'})]));
+    }
+    rows.push(el('tr', { className: 'feature warn' }, [el('td', {colSpan: 2, textContent: msg}), el('td')]));
+  }
+
+  if (!GPUDevice.prototype.importExternalTexture) {
+    addRow('no importExternalTexture support');
+  }
+  return rows;
+}
+
 async function adapterToElements(adapter, device) {
   if (!adapter) {
     return;
@@ -353,6 +369,7 @@ async function adapterToElements(adapter, device) {
           el('table', {className: 'sub-table'}, [
             el('tbody', {}, [
               ...mapLikeToTableRows(parseAdapterInfo(adapter.info)),
+              ...adapterWarnings(),
             ]),
           ]),
         ]),
