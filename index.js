@@ -315,22 +315,6 @@ function parseAdapterInfo(adapterInfo) {
 const requestLink = 'https://webgpufundamentals.org/webgpu/lessons/webgpu-limits-and-features.html';
 const requestHint = 'limits greater than default must be specified when requesting adapter';
 
-function adapterWarnings() {
-  const rows = [];
-
-  const addRow = (msg) => {
-    if (rows.length === 0) {
-      rows.push(el('tr', { className: 'warn' }, [el('td', {colSpan: 2, textContent: 'warnings:'})]));
-    }
-    rows.push(el('tr', { className: 'feature warn' }, [el('td', {colSpan: 2, textContent: msg}), el('td')]));
-  }
-
-  if (!GPUDevice.prototype.importExternalTexture) {
-    addRow('no importExternalTexture support');
-  }
-  return rows;
-}
-
 async function adapterToElements(adapter, device) {
   if (!adapter) {
     return;
@@ -367,10 +351,7 @@ async function adapterToElements(adapter, device) {
       el('tr', {}, [
         el('td', {className: 'sub-table', colSpan: 2}, [
           el('table', {className: 'sub-table'}, [
-            el('tbody', {}, [
-              ...mapLikeToTableRows(parseAdapterInfo(adapter.info)),
-              ...adapterWarnings(),
-            ]),
+            el('tbody', {}, mapLikeToTableRows(parseAdapterInfo(adapter.info))),
           ]),
         ]),
       ]),
@@ -533,8 +514,74 @@ async function checkWebXRSupport() {
   }
 }
 
+function supportsDirectBufferBinding(device) {
+  const buffer = device.createBuffer({size: 16, usage: GPUBufferUsage.UNIFORM});
+  const layout = device.createBindGroupLayout({
+    entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, buffer: {} }],
+  });
+
+  try {
+    device.createBindGroup({
+      layout,
+      entries: [{ binding: 0, resource: buffer }],
+    });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    buffer.destroy();
+  }
+}
+
+function supportsDirectTextureBinding(device) {
+  const texture = device.createTexture({size: [1], usage: GPUTextureUsage.TEXTURE_BINDING, format: 'rgba8unorm'});
+  const layout = device.createBindGroupLayout({
+    entries: [{ binding: 0, visibility: GPUShaderStage.FRAGMENT, texture: {} }],
+  });
+
+  try {
+    device.createBindGroup({
+      layout,
+      entries: [{ binding: 0, resource: texture }],
+    });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    texture.destroy();
+  }
+}
+
+function supportsDirectTextureAttachments(device) {
+  const texture = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'rgba8unorm', sampleCount: 4});
+  const resolveTarget = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'rgba8unorm' });
+  const depthTexture = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'depth16unorm', sampleCount: 4 });
+  const encoder = device.createCommandEncoder();
+  try {
+    const pass = encoder.beginRenderPass({
+      colorAttachments: [{view: texture, resolveTarget, loadOp: 'load', storeOp: 'store' }],
+      depthStencilAttachment: { view: depthTexture, depthLoadOp: 'load', depthStoreOp: 'store' },
+    });
+    pass.end();
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  } finally {
+    encoder.finish();
+    texture.destroy();
+    resolveTarget.destroy();
+  }
+}
+
 async function checkMisc(parent, {haveFallback}) {
   const obj = {};
+  const warnings = [];
+
+  if (!GPUDevice.prototype.importExternalTexture) {
+    warnings.push('importExternalTexture not supported');
+  }
+
   const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
   obj.getPreferredCanvasFormat = presentationFormat;
   if (!haveFallback) {
@@ -551,15 +598,36 @@ async function checkMisc(parent, {haveFallback}) {
     context.configure({device, format: presentationFormat, toneMapping: {mode: 'extended'}});
     const config = context.getConfiguration();
     obj['HDR canvas support'] = config.toneMapping.mode === 'extended' ? 'supported' : 'not supported';
+
+    if (!supportsDirectBufferBinding(device)) {
+      warnings.push('direct buffer binding not supported');
+    }
+    if (!supportsDirectTextureBinding(device)) {
+      warnings.push('direct texture binding not supported');
+    }
+    if (!supportsDirectTextureAttachments(device)) {
+      warnings.push('direct texture attachments not supported');
+    } 
   }
   catch(error) {
     obj['HDR canvas support'] = 'not supported';
   }
 
+  if (warnings.length > 0) {
+    parent.appendChild(el('div', {className: 'other warn'}, [
+      (createHeading('h2', '-', 'warnings:')),
+      el('table', { className: 'warnings' }, [
+        el('tbody', {}, [
+          ...setLikeToTableRows(warnings),
+        ]),
+      ]),
+    ]));
+  }
+
   parent.appendChild(el('div', {className: 'other'}, [
     (createHeading('h2', '-', 'misc:')),
     el('table', { className: 'misc' }, [
-        el('tbody', {}, mapLikeToTableRows(obj)),
+      el('tbody', {}, mapLikeToTableRows(obj)),
     ]),
   ]));
 }
