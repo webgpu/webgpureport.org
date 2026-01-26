@@ -82,6 +82,20 @@ function createElem(tag, attrs = {}, children = []) {
   return elem;
 }
 
+/**
+ * Takes a promise `p`, and returns a new one which rejects if `p` takes too long,
+ * and otherwise passes the result through.
+ */
+function raceWithRejectOnTimeout(p, ms, msg = 'timeout') {
+  const timeoutPromise = new Promise((_resolve, reject) => {
+    const handle = setTimeout(() => {
+      reject(new Error(msg));
+    }, ms);
+    p = p.finally(() => clearTimeout(handle));
+  });
+  return Promise.race([p, timeoutPromise]);
+}
+
 const docElem = document.querySelector('#content');
 function addElemToDocument(elem) {
   docElem.appendChild(elem);
@@ -514,6 +528,38 @@ async function checkWebXRSupport() {
   }
 }
 
+async function supportsCopyEI2TVideo(device) {
+  const video = document.createElement('video');
+  video.muted = true;
+  video.src = 'resources/four-colors-h264-bt601.mp4';
+  let texture;
+  try {
+    await raceWithRejectOnTimeout(video.play(), 1000);
+    video.pause();
+    texture = device.createTexture({
+      format: 'rgba8unorm',
+      usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+      size: [video.videoWidth, video.videoHeight],
+    });
+    device.pushErrorScope('validation');
+    device.queue.copyExternalImageToTexture(
+      { source: video },
+      { texture },
+      [video.videoWidth, video.videoHeight],
+    );
+    const err = await device.popErrorScope();
+    if (err) {
+      throw err;
+    }
+    return true;
+  } catch (e) {
+    console.error(e);
+    return false;
+  } finally {
+    texture?.destroy();
+  }
+}
+
 function supportsDirectBufferBinding(device) {
   const buffer = device.createBuffer({size: 16, usage: GPUBufferUsage.UNIFORM});
   const layout = device.createBindGroupLayout({
@@ -590,15 +636,20 @@ async function checkMisc(parent, {haveFallback}) {
 
   obj['WebXR support'] = await checkWebXRSupport();
 
+  const adapter = await navigator.gpu?.requestAdapter();
+  const device = await adapter?.requestDevice();
   try {
-    const adapter = await navigator.gpu.requestAdapter();
-    const device = await adapter.requestDevice();
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('webgpu');
     context.configure({device, format: presentationFormat, toneMapping: {mode: 'extended'}});
     const config = context.getConfiguration();
     obj['HDR canvas support'] = config.toneMapping.mode === 'extended' ? 'supported' : 'not supported';
+  }
+  catch(error) {
+    obj['HDR canvas support'] = 'not supported';
+  }
 
+  try {
     if (!supportsDirectBufferBinding(device)) {
       warnings.push('direct buffer binding not supported');
     }
@@ -607,10 +658,12 @@ async function checkMisc(parent, {haveFallback}) {
     }
     if (!supportsDirectTextureAttachments(device)) {
       warnings.push('direct texture attachments not supported');
-    } 
-  }
-  catch(error) {
-    obj['HDR canvas support'] = 'not supported';
+    }
+    if (!(await supportsCopyEI2TVideo(device))) {
+      warnings.push('copyExternalImageToTexture HTMLVideoElement not supported');
+    }
+  } catch {
+    //
   }
 
   if (warnings.length > 0) {
