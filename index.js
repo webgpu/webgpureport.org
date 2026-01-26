@@ -530,12 +530,12 @@ async function checkWebXRSupport() {
 
 async function supportsCopyEI2TVideo(device) {
   const video = document.createElement('video');
-  video.volume = 0;
-  video.loop = true;
+  video.muted = true;
   video.src = 'resources/four-colors-h264-bt601.mp4';
   let texture;
   try {
     await raceWithRejectOnTimeout(video.play(), 1000);
+    video.pause();
     texture = device.createTexture({
       format: 'rgba8unorm',
       usage: GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
@@ -556,7 +556,6 @@ async function supportsCopyEI2TVideo(device) {
     console.error(e);
     return false;
   } finally {
-    video.pause();
     texture?.destroy();
   }
 }
