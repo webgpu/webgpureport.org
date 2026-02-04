@@ -598,24 +598,47 @@ function supportsDirectTextureBinding(device) {
   }
 }
 
-function supportsDirectTextureAttachments(device) {
-  const texture = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'rgba8unorm', sampleCount: 4});
-  const resolveTarget = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'rgba8unorm' });
-  const depthTexture = device.createTexture({size: [1], usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'depth16unorm', sampleCount: 4 });
-  const encoder = device.createCommandEncoder();
+async function supportsDirectTextureAttachments(device) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('webgpu');
+  const size = [canvas.width, canvas.height];
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({device, format });
+  const texture = device.createTexture({size, usage: GPUTextureUsage.RENDER_ATTACHMENT, format, sampleCount: 4});
+  const resolveTarget = device.createTexture({size, usage: GPUTextureUsage.RENDER_ATTACHMENT, format });
+  const depthTexture = device.createTexture({size, usage: GPUTextureUsage.RENDER_ATTACHMENT, format: 'depth16unorm', sampleCount: 4 });
   try {
-    const pass = encoder.beginRenderPass({
-      colorAttachments: [{view: texture, resolveTarget, loadOp: 'load', storeOp: 'store' }],
-      depthStencilAttachment: { view: depthTexture, depthLoadOp: 'load', depthStoreOp: 'store' },
-    });
-    pass.end();
-    return true;
+    device.pushErrorScope('validation');
+    const encoder = device.createCommandEncoder();
+    {
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [
+          {view: texture, resolveTarget, loadOp: 'clear', storeOp: 'store' },
+        ],
+        depthStencilAttachment: { view: depthTexture, depthLoadOp: 'load', depthStoreOp: 'store' },
+      });
+      pass.end();
+    }
+    // Safari passes the pass above if there as a depthStencilAttachment but
+    // fails if there is only a canvas texture.
+    {
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [
+          {view: context.getCurrentTexture(), loadOp: 'clear', storeOp: 'store' },
+        ],
+      });
+      pass.end();
+    }
+    encoder.finish();
+    const err = await device.popErrorScope();
+    console.log(err);
+    return !err;
   } catch (e) {
     console.error(e);
     return false;
   } finally {
-    encoder.finish();
     texture.destroy();
+    depthTexture.destroy();
     resolveTarget.destroy();
   }
 }
@@ -656,7 +679,7 @@ async function checkMisc(parent, {haveFallback}) {
     if (!supportsDirectTextureBinding(device)) {
       warnings.push('direct texture binding not supported');
     }
-    if (!supportsDirectTextureAttachments(device)) {
+    if (!await supportsDirectTextureAttachments(device)) {
       warnings.push('direct texture attachments not supported');
     }
     if (!(await supportsCopyEI2TVideo(device))) {
