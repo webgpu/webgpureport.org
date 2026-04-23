@@ -761,7 +761,7 @@ async function checkWorker(parent, workerType) {
 function adapterOptionsToDesc(requestAdapterOptions, adapter, device) {
   const parts = [
     ...(adapter?.info.isFallbackAdapter ? ['fallback'] : []),
-    ...(!device?.features.has('core-features-and-limits') && device.limits.maxStorageBuffersInVertexStage === 0
+    ...(!device?.features.has('core-features-and-limits') && device?.limits.maxStorageBuffersInVertexStage === 0
       ? ['compatibilityMode']
       : []),
   ];
