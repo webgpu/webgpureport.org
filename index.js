@@ -29,8 +29,12 @@ const kLimitInfo = makeTable(
   'maxDynamicStorageBuffersPerPipelineLayout': [           , 'count'  ,                          ],
   'maxSampledTexturesPerShaderStage':          [           , 'count'  ,                          ],
   'maxSamplersPerShaderStage':                 [           , 'count'  ,                          ],
-  'maxStorageBuffersPerShaderStage':           [           , 'count'  ,                          ],
+  'maxStorageTexturesInFragmentStage':         [           , 'count'  ,                          ],
+  'maxStorageTexturesInVertexStage':           [           , 'count'  ,                          ],
   'maxStorageTexturesPerShaderStage':          [           , 'count'  ,                          ],
+  'maxStorageBuffersInFragmentStage':          [           , 'count'  ,                          ],
+  'maxStorageBuffersInVertexStage':            [           , 'count'  ,                          ],
+  'maxStorageBuffersPerShaderStage':           [           , 'count'  ,                          ],
   'maxUniformBuffersPerShaderStage':           [           , 'count'  ,                          ],
 
   'maxUniformBufferBindingSize':               [           , 'mem'    , kMaxUnsignedLongLongValue],
@@ -42,7 +46,6 @@ const kLimitInfo = makeTable(
   'maxBufferSize':                             [           , 'mem'    , kMaxUnsignedLongLongValue],
   'maxVertexAttributes':                       [           , 'count'  ,                          ],
   'maxVertexBufferArrayStride':                [           , 'mem'    ,                          ],
-  'maxInterStageShaderComponents':             [           , 'count'  ,                          ],
   'maxInterStageShaderVariables':              [           , 'count'  ,                          ],
 
   'maxColorAttachments':                       [           , 'count'  ,                          ],
@@ -261,10 +264,19 @@ function differenceWorse(name, defaultLimit, v) {
   }
 }
 
+function missingLimits(adapter, device) {
+  const requiredLimits = new Set(Object.keys(kLimitInfo));
+  const haveLimits = new Set(mapLikeToKeyValueArray(adapter.limits).map(([k, v]) => k));
+  const missing = requiredLimits.difference(haveLimits);
+  return [...missing].map(k => {
+    return [k, [el('span', {className: 'error', textContent: '**MISSING**'})]];
+  });
+}
+
 function markDifferencesInLimits(adapter, device) {
   const defaultLimits = device?.limits ?? {};
-  return Object.fromEntries(
-    mapLikeToKeyValueArray(adapter.limits)
+  return Object.fromEntries([
+    ...mapLikeToKeyValueArray(adapter.limits)
       .map(([k, v]) => {
         const defaultLimit = defaultLimits[k];
         const defaultClass = defaultLimit > 0
@@ -294,8 +306,9 @@ function markDifferencesInLimits(adapter, device) {
           k,
           [defaultElem, limitElem],
         ];
-      })
-  );
+      }),
+    ...missingLimits(adapter, device),
+  ]);
 }
 
 function parseAdapterInfo(adapterInfo) {
