@@ -663,6 +663,18 @@ async function supportsDirectTextureAttachments(device) {
   }
 }
 
+function supportsRgba16FloatCanvas(device) {
+  try {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('webgpu');
+    context.configure({device, format: 'rgba16float'});
+  }
+  catch(error) {
+    return false;
+  }
+  return true;
+}
+
 async function checkMisc(parent, {haveFallback}) {
   const obj = {};
   const warnings = [];
@@ -693,6 +705,9 @@ async function checkMisc(parent, {haveFallback}) {
   }
 
   try {
+    if (!supportsRgba16FloatCanvas(device)) {
+      warnings.push('rgba16float canvas not supported');
+    }
     if (!supportsImmediates(device)) {
       warnings.push('immediates not supported');
     }
