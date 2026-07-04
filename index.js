@@ -675,6 +675,10 @@ function supportsRgba16FloatCanvas(device) {
   return true;
 }
 
+function supportsTransientAttachment() {
+  return !!globalThis.GPUTextureUsage?.TRANSIENT_ATTACHMENT;
+}
+
 async function checkMisc(parent, {haveFallback}) {
   const obj = {};
   const warnings = [];
@@ -707,6 +711,9 @@ async function checkMisc(parent, {haveFallback}) {
   try {
     if (!supportsRgba16FloatCanvas(device)) {
       warnings.push('rgba16float canvas not supported');
+    }
+    if (!supportsTransientAttachment()) {
+      warnings.push('transient attachments not supported');
     }
     if (!supportsImmediates(device)) {
       warnings.push('immediates not supported');
