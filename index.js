@@ -573,13 +573,6 @@ async function supportsCopyEI2TVideo(device) {
   }
 }
 
-// The device isn't technically needed for this I think
-// but it seemed like a good idea to keep the same interface
-// and we may need to actually try calling the function in the future to check support.
-function supportsImmediates(device) {
-  return !!GPURenderPassEncoder.prototype.setImmediates;
-}
-
 function supportsDirectBufferBinding(device) {
   const buffer = device.createBuffer({size: 16, usage: GPUBufferUsage.UNIFORM});
   const layout = device.createBindGroupLayout({
@@ -714,9 +707,6 @@ async function checkMisc(parent, {haveFallback}) {
     }
     if (!supportsTransientAttachment()) {
       warnings.push('transient attachments not supported');
-    }
-    if (!supportsImmediates(device)) {
-      warnings.push('immediates not supported');
     }
     if (!supportsDirectBufferBinding(device)) {
       warnings.push('direct buffer binding not supported');
