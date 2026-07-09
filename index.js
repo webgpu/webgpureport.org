@@ -167,7 +167,7 @@ function shortSize(size, suffixes = ['', 'k', 'm', 'g', 't', 'p']) {
 
 const shortSizeByType = (function() {
   const suffixesByType = {
-    'mem': ['b', 'k', 'mb', 'gb', 'tb', 'pb'],
+    'mem': ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB'],
     'size': ['', 'k', 'm', 'g', 't', 'p'],
     'count': ['', 'k', 'm', 'g', 't', 'p'],
   };
